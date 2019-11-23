@@ -13,6 +13,7 @@
     "gh-pages": "^2.0.1",
     "numeral": "^2.0.6",
     "opencollective-postinstall": "^2.0.2",
+    "p5": "0.9.0",
     "query-string": "^6.2.0",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
@@ -21,7 +22,6 @@
     "react-mathjax": "^1.0.1",
     "react-modal": "^2.3.2",
     "react-p5-wrapper": "2.0.0",
-    "p5": "0.9.0",
     "react-redux": "^5.0.6",
     "react-router": "^4.2.0",
     "react-router-bootstrap": "^0.24.4",
@@ -34,6 +34,7 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
+    "rxjs": "^6.5.3",
     "sort-by": "^1.2.0"
   },
   "scripts": {
