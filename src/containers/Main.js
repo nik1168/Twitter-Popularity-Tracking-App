@@ -13,8 +13,17 @@ import Topbar from './Topbar';
 import {bindActionCreators} from "redux";
 import * as theoremsActions from "../actions/theoretical";
 import MathNotation from "../components/MathNotation";
+import {Subject, empty, of} from 'rxjs';
+import {
+    flatMap,
+    map,
+    distinctUntilChanged,
+    filter,
+    catchError
+} from 'rxjs/operators';
 
 const backgroundShape = require('../images/shape.svg');
+
 
 const styles = theme => ({
     root: {
@@ -92,32 +101,256 @@ const styles = theme => ({
         left: '40%'
     }
 });
+const Styles = {
+    prefBut: {
+        marginTop: 50,
+        marginLeft: 50,
+        height: 50,
+        width: 200,
+        fontSize: 25
+    },
+    blackDiv: {
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        flexDirection: 'column',
+        background: 'black',
+        padding: 25
+    },
+    inputBox: {
+        height: 50,
+        width: 680,
+        fontSize: 25,
+        margin: 50,
+        paddingLeft: 15,
+        borderWidth: 6,
+        borderColor: 'yellow'
+    },
+    searchBut: {
+        marginLeft: 50,
+        height: 50,
+        width: 200,
+        fontSize: 25,
+        backgroundColor: 'yellow',
+        borderRadius: 2
+    }
+};
+let makeCallStream = new Subject();
+let prefButtonStream = new Subject();
+let inputStream = new Subject();
+let peopleStream = new Subject();
+let planetStream = new Subject();
+let vehicleStream = new Subject();
+let getDataStream = new Subject();
 
 class Main extends Component {
 
     state = {
         learnMoredialog: false,
-        getStartedDialog: false
+        getStartedDialog: false,
+        prefStatus: [{people: true}, {planets: false}, {vehicles: false}],
+        searchText: '',
+        data: {
+            people: {count: 0, dataArray: []},
+            vehicles: {count: 0, dataArray: []},
+            planets: {count: 0, dataArray: []}
+        }
     };
 
+
+    initializeSearchStream() {
+        makeCallStream
+            .pipe(
+                filter(val => this.state.searchText !== ''),
+                map(val => {
+                    console.log("Value for map");
+                    return val.value;
+                }),
+                flatMap(val => {
+                    console.log("Val for flat map");
+                    console.log(val);
+                    let arr = [];
+                    this.state.prefStatus.map((item, index) => {
+                        if (item[Object.keys(item)[0]]) {
+                            arr.push({pref: item, text: val});
+                        }
+                    });
+                    return of(arr);
+                })
+            )
+            .subscribe(val => {
+                console.log("Subcsribe :P :P")
+                console.log(val);
+                val.map((item, index) => {
+                    switch (Object.keys(item.pref)[0]) {
+                        case 'people':
+                            peopleStream.next({searchText: item.text});
+                            break;
+                        case 'planets':
+                            planetStream.next({searchText: item.text});
+                            break;
+                        case 'vehicles':
+                            vehicleStream.next({searchText: item.text});
+                            break;
+                    }
+                });
+            });
+    }
+
+    initializeInputStream() {
+        console.log("Init input stream!!");
+        inputStream.subscribe(val => {
+            console.log("Cambios que hay en mi");
+            this.setState({
+                searchText: val.value
+            });
+        });
+    }
+
+    initializePrefButtonStream() {
+        prefButtonStream
+            .pipe(
+                filter(button => {
+                    console.log("So we are filtering");
+                    let count = 0;
+                    button.prefStatus.map(
+                        (item, index) => (item[Object.keys(item)[0]] ? count++ : undefined)
+                    );
+                    return count > 1 ? true : !button.status;
+                }),
+                filter(button => this.state.searchText !== '')
+            )
+            .subscribe(button => {
+                console.log("Button value");
+                console.log(button);
+                this.state.prefStatus[button.index][button.pref] = !this.state
+                    .prefStatus[button.index][button.pref];
+                this.setState(
+                    {
+                        prefStatus: this.state.prefStatus
+                    },
+                    () => makeCallStream.next({value: this.state.searchText})
+                );
+            });
+    }
+
+    initializeDataStreams() {
+        peopleStream
+            .pipe(map(val => val.searchText), distinctUntilChanged())
+            .subscribe(val => {
+                console.log("PEOPLE STREAM!!");
+                console.log(val);
+                getDataStream.next({searchText: val, pref: 'people'});
+            });
+        planetStream
+            .pipe(map(val => val.searchText), distinctUntilChanged())
+            .subscribe(val => {
+                console.log("Value planets");
+                console.log(val)
+                    getDataStream.next({searchText: val, pref: 'planets'})
+                }
+            );
+        vehicleStream
+            .pipe(map(val => val.searchText), distinctUntilChanged())
+            .subscribe(val =>
+                getDataStream.next({
+                    searchText: val,
+                    pref: 'vehicles'
+                })
+            );
+        getDataStream
+            .pipe(
+                flatMap(val => {
+                    console.log('getting new data', val);
+                    let outVal = val;
+                    console.log("URL");
+                    console.log(`https://swapi.co/api/${val.pref}/?search=${val.searchText}`);
+                    return fetch(
+                        `https://swapi.co/api/${val.pref}/?search=${val.searchText}`
+                    )
+                        .then(val => val.json())
+                        .then(val => {
+                            console.log("Response from server");
+                            console.log(val);
+                            return of({pref: outVal.pref, res: val})}) // Pasing data downstream for later use
+                }),
+                catchError(err => {
+                    console.log("CATCH ERROR")
+                    return empty();
+                })
+            )
+            .subscribe(obs => {
+                console.log("SUBSCRIBE FINAL!!!");
+                console.log(obs);
+                obs.subscribe((val)=>{
+                    console.log("THIS IS MY FINAL SUBSCRIPTION")
+                    console.log(val)
+                    this.setState({
+                        data: {
+                            ...this.state.data,
+                            [val.pref]: {
+                                count: val.res.count,
+                                dataArray: val.res.results
+                            }
+                        }
+                    });
+                })
+            });
+    }
+
+    renderButtons(button) {
+        return (
+            <button
+                key={button.id}
+                onClick={e => {
+                    console.log("On Click :)")
+                    console.log(this.state)
+                    console.log("Button info")
+                    console.log(button)
+                    prefButtonStream.next({
+                        prefStatus: this.state.prefStatus,
+                        status: button.status,
+                        pref: button.name,
+                        searchText: this.state.searchText,
+                        index: button.id
+                    })
+                }
+
+                }
+                style={{
+                    ...Styles.prefBut,
+                    ...{background: button.status ? 'yellow' : undefined}
+                }}
+            >
+                {button.name}
+            </button>
+        );
+    }
+
+
     componentDidMount() {
+        console.log("Component mounted")
+        console.log(this.state)
+        this.initializeSearchStream();
+        this.initializePrefButtonStream();
+        this.initializeInputStream();
+        this.initializeDataStreams();
     }
 
     openDialog = (event) => {
         this.setState({learnMoredialog: true});
-    }
+    };
 
     dialogClose = (event) => {
         this.setState({learnMoredialog: false});
-    }
+    };
 
     openGetStartedDialog = (event) => {
         this.setState({getStartedDialog: true});
-    }
+    };
 
     closeGetStartedDialog = (event) => {
         this.setState({getStartedDialog: false});
-    }
+    };
 
     render() {
         const {classes} = this.props;
@@ -128,81 +361,83 @@ class Main extends Component {
                 <div className={classes.root}>
                     <Grid container justify="center">
                         <Grid spacing={4} alignItems="center" justify="center" container className={classes.grid}>
-                            <Grid item xs={12} md={4}>
-                                <Paper className={classes.paper}>
-                                    <div className={classes.box}>
-                                        <Typography style={{textTransform: 'uppercase'}} color='secondary' gutterBottom>
-                                            First title :) :P
-                                        </Typography>
-                                        <Typography variant="body2" gutterBottom>
-                                            Let's try a math equation :P
-                                            <br/> <MathNotation text={"hola"} inline={true}/>
-                                        </Typography>
-                                    </div>
-                                    <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                                        <Button color='primary' variant="contained" className={classes.actionButtom}>
-                                            Learn more
-                                        </Button>
-                                    </div>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                                <Paper className={classes.paper}>
-                                    <div className={classes.box}>
-                                        <Typography style={{textTransform: 'uppercase'}} color='secondary' gutterBottom>
-                                            Another box
-                                        </Typography>
-                                        <Typography variant="body1" gutterBottom>
-                                            A default box
-                                        </Typography>
-                                    </div>
-                                    <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                                        <Button color='primary' variant="contained" className={classes.actionButtom}>
-                                            Learn more
-                                        </Button>
-                                    </div>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                                <Paper className={classes.paper}>
-                                    <div className={classes.box}>
-                                        <Typography style={{textTransform: 'uppercase'}} color='secondary' gutterBottom>
-                                            A box with a carousel
-                                        </Typography>
-                                        <Typography variant="body1" gutterBottom>
-                                            If you click in Getting Started, you will see a nice carousel
-                                        </Typography>
-                                    </div>
-                                    <div className={classes.alignRight}>
-                                        <Button onClick={this.openDialog} variant="outlined"
-                                                className={classes.actionButtom}>
-                                            Learn more
-                                        </Button>
-                                        <Button onClick={this.openGetStartedDialog} color='primary' variant="contained"
-                                                className={classes.actionButtom}>
-                                            Dashboard
-                                        </Button>
-                                    </div>
-                                </Paper>
-                            </Grid>
                             <Grid container item xs={12}>
                                 <Grid item xs={12}>
                                     <Paper className={classes.paper}>
                                         <div>
-                                            <div className={classes.box}>
-                                                <Typography color='secondary' gutterBottom>
-                                                    Full box
-                                                </Typography>
-                                                <Typography variant="body1" gutterBottom>
-                                                    This is an example of a full-width box
-                                                </Typography>
+                                            <div style={Styles.blackDiv}>
+                                                <h1 style={{color: 'yellow', marginLeft: 40}}>ReactiveWars</h1>
+                                                <div style={{flexDirection: 'row'}}>
+                                                    {this.state.prefStatus.map((item, index) => {
+                                                        return this.renderButtons({
+                                                            id: index,
+                                                            name: Object.keys(item)[0],
+                                                            status: item[Object.keys(item)[0]]
+                                                        });
+                                                    })}
+                                                </div>
+                                                <div style={{flexDirection: 'row'}}>
+                                                    <input
+                                                        style={Styles.inputBox}
+                                                        placeholder={'Search...'}
+                                                        onChange={e => inputStream.next({value: e.target.value})}
+                                                    />
+                                                    <button
+                                                        style={Styles.searchBut}
+                                                        onClick={e =>
+                                                            makeCallStream.next({value: this.state.searchText})
+                                                        }
+                                                    >
+                                                        Search
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className={classes.alignRight}>
-                                                <Button color='primary' variant="contained"
-                                                        className={classes.actionButtom}>
-                                                    Learn more
-                                                </Button>
+                                            <h1>Data</h1>
+                                            <div style={{flexDirection: 'row', width: '100%'}}>
+                                                <div
+                                                    style={{
+                                                        flex: 1,
+                                                        marginLeft: 80,
+                                                        width: 300,
+                                                        display: 'inline-block',
+                                                        background: 'yellow'
+                                                    }}
+                                                >
+                                                    <pre>People: {this.state.data.people.count}</pre>
+                                                    {this.state.data.people.dataArray.map((item, index) => {
+                                                        return <pre key={index}>{item.name}</pre>;
+                                                    })}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        flex: 1,
+                                                        marginLeft: 80,
+                                                        width: 300,
+                                                        display: 'inline-block',
+                                                        background: 'yellow'
+                                                    }}
+                                                >
+                                                    <pre>Planets: {this.state.data.planets.count}</pre>
+                                                    {this.state.data.planets.dataArray.map((item, index) => {
+                                                        return <pre key={index}>{item.name}</pre>;
+                                                    })}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        flex: 1,
+                                                        marginLeft: 80,
+                                                        width: 300,
+                                                        display: 'inline-block',
+                                                        background: 'yellow'
+                                                    }}
+                                                >
+                                                    <pre>Vehicles: {this.state.data.vehicles.count}</pre>
+                                                    {this.state.data.vehicles.dataArray.map((item, index) => {
+                                                        return <pre key={index}>{item.name}</pre>;
+                                                    })}
+                                                </div>
                                             </div>
+                                            <pre>{JSON.stringify(this.state.data, null, 4)}</pre>
                                         </div>
                                     </Paper>
                                 </Grid>
@@ -232,5 +467,5 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators({...theoremsActions}, dispatch)
 }
 
-// export default withRouter(withStyles(styles)(Main));
-export default connect(mapStateToProps, mapDispatchToProps)(withRouter(withStyles(styles)(Main)))
+export default withRouter(withStyles(styles)(Main));
+// export default connect(mapStateToProps, mapDispatchToProps)(withRouter(withStyles(styles)(Main)))
