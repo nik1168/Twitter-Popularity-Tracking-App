@@ -23,8 +23,13 @@ import {
 } from 'rxjs/operators';
 
 import { subscribeToTweets } from './../sockets/api';
+import {Tweet} from "../Tweet";
+import {disconnectSocket} from "../sockets/api";
+import io from "socket.io-client";
+
 
 const backgroundShape = require('../images/shape.svg');
+const  socket = io('http://localhost:3001');
 
 
 const styles = theme => ({
@@ -143,6 +148,7 @@ let peopleStream = new Subject();
 let planetStream = new Subject();
 let vehicleStream = new Subject();
 let getDataStream = new Subject();
+let tweetsStream = new Subject()
 
 class Main extends Component {
 
@@ -197,6 +203,21 @@ class Main extends Component {
                 });
             });
     }
+
+    initializeSocketStream(){
+        socket.on('tweet', data => tweetsStream.next(data));
+    }
+
+    initializeTweetsStream(){
+        console.log("Init input stream!!");
+        tweetsStream
+            .subscribe((tweet)=>{
+            console.log("Tweets from observable :)");
+            console.log(tweet)
+        })
+    }
+
+
 
     initializeInputStream() {
         console.log("Init input stream!!");
@@ -332,16 +353,18 @@ class Main extends Component {
 
     componentDidMount() {
         console.log("Init sockets");
-        subscribeToTweets((err, tweet) => {
-            console.log("tweet")
-            console.log(tweet)
-        });
+        this.initializeSocketStream();
+        this.initializeTweetsStream();
         // console.log("Component mounted");
         // console.log(this.state);
         // this.initializeSearchStream();
         // this.initializePrefButtonStream();
         // this.initializeInputStream();
         // this.initializeDataStreams();
+    }
+
+    componentWillUnmount(): void {
+        disconnectSocket()
     }
 
     openDialog = (event) => {

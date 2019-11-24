@@ -9,6 +9,7 @@ var debug = require('debug')('server:server');
 var http = require('http');
 var serverX = http.Server(app);
 const fs = require("fs");
+var Twit = require('twit');
 
 
 /**
@@ -36,43 +37,92 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-function readFile(file) {
-  return parse(fs.readFileSync(file, 'utf8'), {
-    complete: function (results, file) {
-      console.log('Loading tweets');
-      tweetsList = results.data;
-    }
-  })
-}
-
-const file = "./tweets.csv";
-let tweetsList = undefined;
-
-readFile(file);
-io.on("connection", function (socket) {
-
-  const tweet = (t) => {
-    socket.emit('tweet', {
-      text: t
-    });
-  };
-
-  function doInLoop(c) {
-    if (c > 0) {
-      var cb = () => {
-        return () => {
-          if (tweetsList) {
-            c--;
-            tweet(tweetsList[c]);
-          }
-          doInLoop(c);
-        }
-      };
-      setTimeout(cb(), Math.random() * 3000);
-    }
-  }
-  doInLoop(300, tweet);
+// Streams of data twitter :P
+const twitter = new Twit({
+  consumer_key: 'ClkspMmRMOTAJvysssMpylY56',
+  consumer_secret: '34qxajeFKcPTvMocYT5xMdOTZrQohbOAO1btgpRihJuA1tGxlM',
+  access_token: '138086873-jMTpMLwOTPKRRDQ9MnlgUvwIollZTadG3i9ZnRlz',
+  access_token_secret: 'xFdxY1bV2aRaxvy5AJ16i7kCxsVNe6MzThTr5QgJxJzwJ'
 });
+
+const stream = twitter.stream('statuses/filter', { track: 'mango' });
+console.log("stream")
+console.log(stream)
+console.log("Hoola");
+// stream.on('tweet', function (tweet) {
+//   console.log(tweet)
+//   const data = {
+//     'name': tweet.user.name,
+//     'screen_name': tweet.user.screen_name,
+//     'text': tweet.text,
+//     'avatar': tweet.user.profile_image_url
+//   };
+//
+//   // socket.emit('tweets', data);
+// });
+io.on("connection", function (socket) {
+  console.log("Sommeone connected");
+
+  stream.on('tweet', function (tweet) {
+    console.log("tweet!");
+    console.log(tweet);
+    const data = {
+      'name': tweet.user.name,
+      'screen_name': tweet.user.screen_name,
+      'text': tweet.text,
+      'avatar': tweet.user.profile_image_url
+    };
+    // console.log("Data tweet");
+    // console.log(data);
+    // console.log("Scoket from function")
+    socket.emit('tweet', data);
+  });
+});
+// Streams of data twitter
+
+
+// Implementing mock stream of tweets
+
+// function readFile(file) {
+//   return parse(fs.readFileSync(file, 'utf8'), {
+//     complete: function (results, file) {
+//       console.log('Loading tweets');
+//       tweetsList = results.data;
+//     }
+//   })
+// }
+//
+// const file = "./tweets.csv";
+// let tweetsList = undefined;
+//
+// readFile(file);
+// io.on("connection", function (socket) {
+//
+//   const tweet = (t) => {
+//     console.log("Something here?")
+//     socket.emit('tweet', {
+//       text: t
+//     });
+//   };
+//
+//   function doInLoop(c) {
+//     if (c > 0) {
+//       var cb = () => {
+//         return () => {
+//           if (tweetsList) {
+//             c--;
+//             tweet(tweetsList[c]);
+//           }
+//           doInLoop(c);
+//         }
+//       };
+//       setTimeout(cb(), Math.random() * 3000);
+//     }
+//   }
+//   doInLoop(300, tweet);
+// });
+
+// end mocks :)
 
 /**
  * Normalize a port into a number, string, or false.
