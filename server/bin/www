@@ -7,12 +7,9 @@
 var app = require('../app');
 var debug = require('debug')('server:server');
 var http = require('http');
-var server = http.Server(app);
+var serverX = http.Server(app);
 const fs = require("fs");
-var io = require('socket.io')(server);
-const {
-  parse
-} = require("papaparse");
+
 
 /**
  * Get port from environment and store in Express.
@@ -26,6 +23,10 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+var io = require('socket.io')(server);
+const {
+  parse
+} = require("papaparse");
 
 /**
  * Listen on provided port, on all network interfaces.

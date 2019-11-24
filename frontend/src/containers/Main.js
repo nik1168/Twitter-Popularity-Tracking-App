@@ -22,6 +22,8 @@ import {
     catchError
 } from 'rxjs/operators';
 
+import { subscribeToTweets } from './../sockets/api';
+
 const backgroundShape = require('../images/shape.svg');
 
 
@@ -244,8 +246,8 @@ class Main extends Component {
         planetStream
             .pipe(map(val => val.searchText), distinctUntilChanged())
             .subscribe(val => {
-                console.log("Value planets");
-                console.log(val)
+                    console.log("Value planets");
+                    console.log(val)
                     getDataStream.next({searchText: val, pref: 'planets'})
                 }
             );
@@ -271,7 +273,8 @@ class Main extends Component {
                         .then(val => {
                             console.log("Response from server");
                             console.log(val);
-                            return of({pref: outVal.pref, res: val})}) // Pasing data downstream for later use
+                            return of({pref: outVal.pref, res: val})
+                        }) // Pasing data downstream for later use
                 }),
                 catchError(err => {
                     console.log("CATCH ERROR")
@@ -281,7 +284,7 @@ class Main extends Component {
             .subscribe(obs => {
                 console.log("SUBSCRIBE FINAL!!!");
                 console.log(obs);
-                obs.subscribe((val)=>{
+                obs.subscribe((val) => {
                     console.log("THIS IS MY FINAL SUBSCRIPTION")
                     console.log(val)
                     this.setState({
@@ -328,12 +331,17 @@ class Main extends Component {
 
 
     componentDidMount() {
-        console.log("Component mounted")
-        console.log(this.state)
-        this.initializeSearchStream();
-        this.initializePrefButtonStream();
-        this.initializeInputStream();
-        this.initializeDataStreams();
+        console.log("Init sockets");
+        subscribeToTweets((err, tweet) => {
+            console.log("tweet")
+            console.log(tweet)
+        });
+        // console.log("Component mounted");
+        // console.log(this.state);
+        // this.initializeSearchStream();
+        // this.initializePrefButtonStream();
+        // this.initializeInputStream();
+        // this.initializeDataStreams();
     }
 
     openDialog = (event) => {
