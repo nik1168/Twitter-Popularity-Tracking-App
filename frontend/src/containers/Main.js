@@ -19,17 +19,16 @@ import {
     map,
     distinctUntilChanged,
     filter,
-    catchError
+    catchError, scan
 } from 'rxjs/operators';
 
-import { subscribeToTweets } from './../sockets/api';
 import {Tweet} from "../Tweet";
 import {disconnectSocket} from "../sockets/api";
 import io from "socket.io-client";
 
 
 const backgroundShape = require('../images/shape.svg');
-const  socket = io('http://localhost:3001');
+let socket;
 
 
 const styles = theme => ({
@@ -148,7 +147,7 @@ let peopleStream = new Subject();
 let planetStream = new Subject();
 let vehicleStream = new Subject();
 let getDataStream = new Subject();
-let tweetsStream = new Subject()
+let tweetsStream = new Subject();
 
 class Main extends Component {
 
@@ -157,6 +156,7 @@ class Main extends Component {
         getStartedDialog: false,
         prefStatus: [{people: true}, {planets: false}, {vehicles: false}],
         searchText: '',
+        count: 0,
         data: {
             people: {count: 0, dataArray: []},
             vehicles: {count: 0, dataArray: []},
@@ -204,20 +204,25 @@ class Main extends Component {
             });
     }
 
-    initializeSocketStream(){
+    initializeSocketStream() {
+        console.log("Init socket stream")
         socket.on('tweet', data => tweetsStream.next(data));
     }
 
-    initializeTweetsStream(){
+    initializeTweetsStream() {
         console.log("Init input stream!!");
         tweetsStream
-            .subscribe((tweet)=>{
-            console.log("Tweets from observable :)");
-            console.log(tweet)
-        })
+            .subscribe((tweet) => {
+                console.log("Tweets from observable :)");
+                console.log(tweet)
+            })
     }
 
-
+    initializeCountTweetsStream() {
+        tweetsStream.pipe(scan(counter => counter + 1, 0)).subscribe(counter => {
+            this.setState({count: counter})
+        })
+    }
 
     initializeInputStream() {
         console.log("Init input stream!!");
@@ -352,9 +357,11 @@ class Main extends Component {
 
 
     componentDidMount() {
+        socket = io('http://localhost:3001')
         console.log("Init sockets");
         this.initializeSocketStream();
         this.initializeTweetsStream();
+        this.initializeCountTweetsStream()
         // console.log("Component mounted");
         // console.log(this.state);
         // this.initializeSearchStream();
@@ -363,8 +370,9 @@ class Main extends Component {
         // this.initializeDataStreams();
     }
 
-    componentWillUnmount(): void {
-        disconnectSocket()
+    componentWillUnmount() {
+        console.log("Component will unmount")
+        socket.disconnect()
     }
 
     openDialog = (event) => {
@@ -385,6 +393,7 @@ class Main extends Component {
 
     render() {
         const {classes} = this.props;
+        const {count} = this.state;
         return (
             <React.Fragment>
                 <CssBaseline/>
@@ -395,81 +404,83 @@ class Main extends Component {
                             <Grid container item xs={12}>
                                 <Grid item xs={12}>
                                     <Paper className={classes.paper}>
-                                        <div>
-                                            <div style={Styles.blackDiv}>
-                                                <h1 style={{color: 'yellow', marginLeft: 40}}>ReactiveWars</h1>
-                                                <div style={{flexDirection: 'row'}}>
-                                                    {this.state.prefStatus.map((item, index) => {
-                                                        return this.renderButtons({
-                                                            id: index,
-                                                            name: Object.keys(item)[0],
-                                                            status: item[Object.keys(item)[0]]
-                                                        });
-                                                    })}
-                                                </div>
-                                                <div style={{flexDirection: 'row'}}>
-                                                    <input
-                                                        style={Styles.inputBox}
-                                                        placeholder={'Search...'}
-                                                        onChange={e => inputStream.next({value: e.target.value})}
-                                                    />
-                                                    <button
-                                                        style={Styles.searchBut}
-                                                        onClick={e =>
-                                                            makeCallStream.next({value: this.state.searchText})
-                                                        }
-                                                    >
-                                                        Search
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <h1>Data</h1>
-                                            <div style={{flexDirection: 'row', width: '100%'}}>
-                                                <div
-                                                    style={{
-                                                        flex: 1,
-                                                        marginLeft: 80,
-                                                        width: 300,
-                                                        display: 'inline-block',
-                                                        background: 'yellow'
-                                                    }}
-                                                >
-                                                    <pre>People: {this.state.data.people.count}</pre>
-                                                    {this.state.data.people.dataArray.map((item, index) => {
-                                                        return <pre key={index}>{item.name}</pre>;
-                                                    })}
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        flex: 1,
-                                                        marginLeft: 80,
-                                                        width: 300,
-                                                        display: 'inline-block',
-                                                        background: 'yellow'
-                                                    }}
-                                                >
-                                                    <pre>Planets: {this.state.data.planets.count}</pre>
-                                                    {this.state.data.planets.dataArray.map((item, index) => {
-                                                        return <pre key={index}>{item.name}</pre>;
-                                                    })}
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        flex: 1,
-                                                        marginLeft: 80,
-                                                        width: 300,
-                                                        display: 'inline-block',
-                                                        background: 'yellow'
-                                                    }}
-                                                >
-                                                    <pre>Vehicles: {this.state.data.vehicles.count}</pre>
-                                                    {this.state.data.vehicles.dataArray.map((item, index) => {
-                                                        return <pre key={index}>{item.name}</pre>;
-                                                    })}
-                                                </div>
-                                            </div>
-                                            <pre>{JSON.stringify(this.state.data, null, 4)}</pre>
-                                        </div>
+                                        {/*<div>*/}
+                                        {/*    <div style={Styles.blackDiv}>*/}
+                                        {/*        <h1 style={{color: 'yellow', marginLeft: 40}}>ReactiveWars</h1>*/}
+                                        {/*        <div style={{flexDirection: 'row'}}>*/}
+                                        {/*            {this.state.prefStatus.map((item, index) => {*/}
+                                        {/*                return this.renderButtons({*/}
+                                        {/*                    id: index,*/}
+                                        {/*                    name: Object.keys(item)[0],*/}
+                                        {/*                    status: item[Object.keys(item)[0]]*/}
+                                        {/*                });*/}
+                                        {/*            })}*/}
+                                        {/*        </div>*/}
+                                        {/*        <div style={{flexDirection: 'row'}}>*/}
+                                        {/*            <input*/}
+                                        {/*                style={Styles.inputBox}*/}
+                                        {/*                placeholder={'Search...'}*/}
+                                        {/*                onChange={e => inputStream.next({value: e.target.value})}*/}
+                                        {/*            />*/}
+                                        {/*            <button*/}
+                                        {/*                style={Styles.searchBut}*/}
+                                        {/*                onClick={e =>*/}
+                                        {/*                    makeCallStream.next({value: this.state.searchText})*/}
+                                        {/*                }*/}
+                                        {/*            >*/}
+                                        {/*                Search*/}
+                                        {/*            </button>*/}
+                                        {/*        </div>*/}
+                                        {/*    </div>*/}
+                                        {/*    <h1>Data</h1>*/}
+                                        {/*    <div style={{flexDirection: 'row', width: '100%'}}>*/}
+                                        {/*        <div*/}
+                                        {/*            style={{*/}
+                                        {/*                flex: 1,*/}
+                                        {/*                marginLeft: 80,*/}
+                                        {/*                width: 300,*/}
+                                        {/*                display: 'inline-block',*/}
+                                        {/*                background: 'yellow'*/}
+                                        {/*            }}*/}
+                                        {/*        >*/}
+                                        {/*            <pre>People: {this.state.data.people.count}</pre>*/}
+                                        {/*            {this.state.data.people.dataArray.map((item, index) => {*/}
+                                        {/*                return <pre key={index}>{item.name}</pre>;*/}
+                                        {/*            })}*/}
+                                        {/*        </div>*/}
+                                        {/*        <div*/}
+                                        {/*            style={{*/}
+                                        {/*                flex: 1,*/}
+                                        {/*                marginLeft: 80,*/}
+                                        {/*                width: 300,*/}
+                                        {/*                display: 'inline-block',*/}
+                                        {/*                background: 'yellow'*/}
+                                        {/*            }}*/}
+                                        {/*        >*/}
+                                        {/*            <pre>Planets: {this.state.data.planets.count}</pre>*/}
+                                        {/*            {this.state.data.planets.dataArray.map((item, index) => {*/}
+                                        {/*                return <pre key={index}>{item.name}</pre>;*/}
+                                        {/*            })}*/}
+                                        {/*        </div>*/}
+                                        {/*        <div*/}
+                                        {/*            style={{*/}
+                                        {/*                flex: 1,*/}
+                                        {/*                marginLeft: 80,*/}
+                                        {/*                width: 300,*/}
+                                        {/*                display: 'inline-block',*/}
+                                        {/*                background: 'yellow'*/}
+                                        {/*            }}*/}
+                                        {/*        >*/}
+                                        {/*            <pre>Vehicles: {this.state.data.vehicles.count}</pre>*/}
+                                        {/*            {this.state.data.vehicles.dataArray.map((item, index) => {*/}
+                                        {/*                return <pre key={index}>{item.name}</pre>;*/}
+                                        {/*            })}*/}
+                                        {/*        </div>*/}
+                                        {/*    </div>*/}
+                                        {/*    <pre>{JSON.stringify(this.state.data, null, 4)}</pre>*/}
+                                        {/*</div>*/}
+                                        Hola
+                                        <p>{count}</p>
                                     </Paper>
                                 </Grid>
                             </Grid>
