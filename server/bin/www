@@ -39,16 +39,15 @@ server.on('listening', onListening);
 
 // Streams of data twitter :P
 const twitter = new Twit({
-  consumer_key: 'ClkspMmRMOTAJvysssMpylY56',
-  consumer_secret: '34qxajeFKcPTvMocYT5xMdOTZrQohbOAO1btgpRihJuA1tGxlM',
-  access_token: '138086873-jMTpMLwOTPKRRDQ9MnlgUvwIollZTadG3i9ZnRlz',
-  access_token_secret: 'xFdxY1bV2aRaxvy5AJ16i7kCxsVNe6MzThTr5QgJxJzwJ'
+  consumer_key: 'Zk9Glqw4fF3rZI84yLmjdICm5',
+  consumer_secret: 'dMv28j60Y0XCf8S1PUfJXoVWMWMQH5UkdtsOvPDWFqo1JFlW6Q',
+  access_token: '474508954-4kp4veZONyNbX8ukHloMNecRatqy4e9BFeI2XNgT',
+  access_token_secret: 'hwg96Nju4SaiSfx9QKvjB9YCn7EkEqrkMe36m8mn9lIEC'
 });
 
-const stream = twitter.stream('statuses/filter', { track: 'mango' });
-console.log("stream")
-console.log(stream)
-console.log("Hoola");
+const stream = twitter.stream('statuses/filter', { track: 'hello' });
+
+console.log("Init server");
 // stream.on('tweet', function (tweet) {
 //   console.log(tweet)
 //   const data = {
@@ -61,7 +60,8 @@ console.log("Hoola");
 //   // socket.emit('tweets', data);
 // });
 io.on("connection", function (socket) {
-  console.log("Sommeone connected");
+  console.log("Init socket connection for a user");
+  console.log("Waiting for twits to come");
 
   stream.on('tweet', function (tweet) {
     console.log("tweet!");
@@ -83,23 +83,23 @@ io.on("connection", function (socket) {
 
 // Implementing mock stream of tweets
 
-// function readFile(file) {
-//   return parse(fs.readFileSync(file, 'utf8'), {
-//     complete: function (results, file) {
-//       console.log('Loading tweets');
-//       tweetsList = results.data;
-//     }
-//   })
-// }
-//
-// const file = "./tweets.csv";
-// let tweetsList = undefined;
+function readFile(file) {
+  return parse(fs.readFileSync(file, 'utf8'), {
+    complete: function (results, file) {
+      console.log('Loading tweets');
+      tweetsList = results.data;
+    }
+  })
+}
+
+const file = "./tweets.csv";
+let tweetsList = undefined;
 //
 // readFile(file);
 // io.on("connection", function (socket) {
 //
 //   const tweet = (t) => {
-//     console.log("Something here?")
+//     console.log("Something here?");
 //     socket.emit('tweet', {
 //       text: t
 //     });

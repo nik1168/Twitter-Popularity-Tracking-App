@@ -357,7 +357,8 @@ class Main extends Component {
 
 
     componentDidMount() {
-        socket = io('http://localhost:3001')
+        console.log("Component did mount Twitter popularity");
+        socket = io('http://localhost:3001/');
         console.log("Init sockets");
         this.initializeSocketStream();
         this.initializeTweetsStream();
