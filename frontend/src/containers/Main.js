@@ -25,6 +25,7 @@ import {
 import {Tweet} from "../Tweet";
 import {disconnectSocket} from "../sockets/api";
 import io from "socket.io-client";
+import {changeTrack, getMocked} from "../Api";
 
 
 const backgroundShape = require('../images/shape.svg');
@@ -358,11 +359,13 @@ class Main extends Component {
 
     componentDidMount() {
         console.log("Component did mount Twitter popularity");
-        socket = io('http://localhost:3001/');
+        getMocked().subscribe((value) => console.log(value));
+        changeTrack('navidad').subscribe((value) => console.log(value));
+        // socket = io('http://localhost:3001/');
         console.log("Init sockets");
-        this.initializeSocketStream();
-        this.initializeTweetsStream();
-        this.initializeCountTweetsStream()
+        // this.initializeSocketStream();
+        // this.initializeTweetsStream();
+        // this.initializeCountTweetsStream()
         // console.log("Component mounted");
         // console.log(this.state);
         // this.initializeSearchStream();
@@ -372,8 +375,8 @@ class Main extends Component {
     }
 
     componentWillUnmount() {
-        console.log("Component will unmount")
-        socket.disconnect()
+        console.log("Component will unmount");
+        // socket.disconnect()
     }
 
     openDialog = (event) => {
@@ -392,6 +395,10 @@ class Main extends Component {
         this.setState({getStartedDialog: false});
     };
 
+    changeTrack = () => {
+        changeTrack('navidad').subscribe((value) => console.log(value));
+    };
+
     render() {
         const {classes} = this.props;
         const {count} = this.state;
@@ -408,6 +415,10 @@ class Main extends Component {
                                         <Typography color='secondary' variant="h5" gutterBottom>
                                             Welcome!
                                         </Typography>
+                                        <Button onClick={() => this.changeTrack()} variant='text' color="primary"
+                                                className={classes.actionButtomR} autoFocus>
+                                            Change track
+                                        </Button>
                                         <p>{count}</p>
                                     </Paper>
                                 </Grid>
