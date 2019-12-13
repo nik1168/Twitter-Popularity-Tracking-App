@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// import {Tweet} from "../models/tweet";
+
 /**
  * Module dependencies.
  */
@@ -7,15 +9,24 @@
 const app = require('../app');
 const debug = require('debug')('server:server');
 const http = require('http');
-const serverX = http.Server(app);
 const fs = require("fs");
 const Twit = require('twit');
+const Tweet = require('../models/tweet');
+const Twitter = require('node-tweet-stream')
+    , t = new Twitter({
+    consumer_key: 'Zk9Glqw4fF3rZI84yLmjdICm5',
+    consumer_secret: 'dMv28j60Y0XCf8S1PUfJXoVWMWMQH5UkdtsOvPDWFqo1JFlW6Q',
+    token: '474508954-4kp4veZONyNbX8ukHloMNecRatqy4e9BFeI2XNgT',
+    token_secret: 'hwg96Nju4SaiSfx9QKvjB9YCn7EkEqrkMe36m8mn9lIEC'
+});
 
 
 /**
  * Get port from environment and store in Express.
  */
-
+app.get('/hello',function (req, res, next) {
+    res.send('respond with a resource');
+});
 const port = normalizePort(process.env.PORT || '3001');
 app.set('port', port);
 
@@ -36,25 +47,51 @@ const {
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
-
-// Streams of data twitter :P
-const twitter = new Twit({
+// Using Twit library for making streams
+// const twitter = new Twit(dataAuth);
+const dataAuth = {
     consumer_key: 'Zk9Glqw4fF3rZI84yLmjdICm5',
     consumer_secret: 'dMv28j60Y0XCf8S1PUfJXoVWMWMQH5UkdtsOvPDWFqo1JFlW6Q',
     access_token: '474508954-4kp4veZONyNbX8ukHloMNecRatqy4e9BFeI2XNgT',
     access_token_secret: 'hwg96Nju4SaiSfx9QKvjB9YCn7EkEqrkMe36m8mn9lIEC'
-});
+};
+// const streamStatuses = twitter.stream('statuses/filter', {track: 'navidad'});
+// const streamStatusesNoTrack = twitter.stream('statuses/filter', {track: 'navidad'});
 
-const stream = twitter.stream('statuses/filter', {track: 'navidad'});
+// console.log("Init server");
+// io.on("connection", function (socket) {
+//     console.log("Init socket connection for a user");
+//     console.log("Waiting for twits to come");
+//
+//     streamStatusesNoTrack.on('tweet', function (tweet) {
+//         console.log("tweet!");
+//         console.log(tweet);
+//         const data = {
+//             'name': tweet.user.name,
+//             'screen_name': tweet.user.screen_name,
+//             'text': tweet.text,
+//             'user': tweet.user,
+//             'quote_count': tweet.quote_count,
+//             'reply_count': tweet.reply_count,
+//             'coordinates': tweet.coordinates,
+//             'place': tweet.place,
+//             'retweet_count': tweet.retweet_count,
+//             'favorite_count': tweet.favorite_count,
+//             'entities': tweet.entities
+//         };
+//         // console.log("Data tweet");
+//         // console.log(data);
+//         // console.log("Scoket from function")
+//         socket.emit('tweet', data);
+//     });
+// });
+// Streams of data twitter
 
-console.log("Init server");
+// Using twitter stream library
+
 io.on("connection", function (socket) {
-    console.log("Init socket connection for a user");
-    console.log("Waiting for twits to come");
-
-    stream.on('tweet', function (tweet) {
-        console.log("tweet!");
-        console.log(tweet);
+    t.on('tweet', function (tweet) {
+        console.log('tweet received', tweet)
         const data = {
             'name': tweet.user.name,
             'screen_name': tweet.user.screen_name,
@@ -68,13 +105,17 @@ io.on("connection", function (socket) {
             'favorite_count': tweet.favorite_count,
             'entities': tweet.entities
         };
-        // console.log("Data tweet");
-        // console.log(data);
-        // console.log("Scoket from function")
         socket.emit('tweet', data);
     });
 });
-// Streams of data twitter
+
+
+// t.track('navidad');
+
+
+t.on('error', function (err) {
+    console.log('Oh no')
+});
 
 
 // Implementing mock stream of tweets
