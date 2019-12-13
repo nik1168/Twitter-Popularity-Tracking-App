@@ -273,7 +273,7 @@ class Main extends Component {
             .pipe(map(val => val.searchText), distinctUntilChanged())
             .subscribe(val => {
                     console.log("Value planets");
-                    console.log(val)
+                    console.log(val);
                     getDataStream.next({searchText: val, pref: 'planets'})
                 }
             );
@@ -331,10 +331,10 @@ class Main extends Component {
             <button
                 key={button.id}
                 onClick={e => {
-                    console.log("On Click :)")
-                    console.log(this.state)
-                    console.log("Button info")
-                    console.log(button)
+                    console.log("On Click :)");
+                    console.log(this.state);
+                    console.log("Button info");
+                    console.log(button);
                     prefButtonStream.next({
                         prefStatus: this.state.prefStatus,
                         status: button.status,
@@ -405,82 +405,9 @@ class Main extends Component {
                             <Grid container item xs={12}>
                                 <Grid item xs={12}>
                                     <Paper className={classes.paper}>
-                                        {/*<div>*/}
-                                        {/*    <div style={Styles.blackDiv}>*/}
-                                        {/*        <h1 style={{color: 'yellow', marginLeft: 40}}>ReactiveWars</h1>*/}
-                                        {/*        <div style={{flexDirection: 'row'}}>*/}
-                                        {/*            {this.state.prefStatus.map((item, index) => {*/}
-                                        {/*                return this.renderButtons({*/}
-                                        {/*                    id: index,*/}
-                                        {/*                    name: Object.keys(item)[0],*/}
-                                        {/*                    status: item[Object.keys(item)[0]]*/}
-                                        {/*                });*/}
-                                        {/*            })}*/}
-                                        {/*        </div>*/}
-                                        {/*        <div style={{flexDirection: 'row'}}>*/}
-                                        {/*            <input*/}
-                                        {/*                style={Styles.inputBox}*/}
-                                        {/*                placeholder={'Search...'}*/}
-                                        {/*                onChange={e => inputStream.next({value: e.target.value})}*/}
-                                        {/*            />*/}
-                                        {/*            <button*/}
-                                        {/*                style={Styles.searchBut}*/}
-                                        {/*                onClick={e =>*/}
-                                        {/*                    makeCallStream.next({value: this.state.searchText})*/}
-                                        {/*                }*/}
-                                        {/*            >*/}
-                                        {/*                Search*/}
-                                        {/*            </button>*/}
-                                        {/*        </div>*/}
-                                        {/*    </div>*/}
-                                        {/*    <h1>Data</h1>*/}
-                                        {/*    <div style={{flexDirection: 'row', width: '100%'}}>*/}
-                                        {/*        <div*/}
-                                        {/*            style={{*/}
-                                        {/*                flex: 1,*/}
-                                        {/*                marginLeft: 80,*/}
-                                        {/*                width: 300,*/}
-                                        {/*                display: 'inline-block',*/}
-                                        {/*                background: 'yellow'*/}
-                                        {/*            }}*/}
-                                        {/*        >*/}
-                                        {/*            <pre>People: {this.state.data.people.count}</pre>*/}
-                                        {/*            {this.state.data.people.dataArray.map((item, index) => {*/}
-                                        {/*                return <pre key={index}>{item.name}</pre>;*/}
-                                        {/*            })}*/}
-                                        {/*        </div>*/}
-                                        {/*        <div*/}
-                                        {/*            style={{*/}
-                                        {/*                flex: 1,*/}
-                                        {/*                marginLeft: 80,*/}
-                                        {/*                width: 300,*/}
-                                        {/*                display: 'inline-block',*/}
-                                        {/*                background: 'yellow'*/}
-                                        {/*            }}*/}
-                                        {/*        >*/}
-                                        {/*            <pre>Planets: {this.state.data.planets.count}</pre>*/}
-                                        {/*            {this.state.data.planets.dataArray.map((item, index) => {*/}
-                                        {/*                return <pre key={index}>{item.name}</pre>;*/}
-                                        {/*            })}*/}
-                                        {/*        </div>*/}
-                                        {/*        <div*/}
-                                        {/*            style={{*/}
-                                        {/*                flex: 1,*/}
-                                        {/*                marginLeft: 80,*/}
-                                        {/*                width: 300,*/}
-                                        {/*                display: 'inline-block',*/}
-                                        {/*                background: 'yellow'*/}
-                                        {/*            }}*/}
-                                        {/*        >*/}
-                                        {/*            <pre>Vehicles: {this.state.data.vehicles.count}</pre>*/}
-                                        {/*            {this.state.data.vehicles.dataArray.map((item, index) => {*/}
-                                        {/*                return <pre key={index}>{item.name}</pre>;*/}
-                                        {/*            })}*/}
-                                        {/*        </div>*/}
-                                        {/*    </div>*/}
-                                        {/*    <pre>{JSON.stringify(this.state.data, null, 4)}</pre>*/}
-                                        {/*</div>*/}
-                                        Hola
+                                        <Typography color='secondary' variant="h5" gutterBottom>
+                                            Welcome!
+                                        </Typography>
                                         <p>{count}</p>
                                     </Paper>
                                 </Grid>
