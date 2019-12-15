@@ -13,6 +13,7 @@ import Topbar from './Topbar';
 import {bindActionCreators} from "redux";
 import * as theoremsActions from "../actions/theoretical";
 import MathNotation from "../components/MathNotation";
+import Timeline from 'react-twitter-widgets'
 import {Subject, empty, of} from 'rxjs';
 import {
     flatMap,
@@ -21,11 +22,14 @@ import {
     filter,
     catchError, scan
 } from 'rxjs/operators';
+import {Input} from '@material-ui/core';
 
 import {Tweet} from "../Tweet";
 import {disconnectSocket} from "../sockets/api";
 import io from "socket.io-client";
 import {changeTrack, getMocked} from "../Api";
+import TextField from "@material-ui/core/TextField";
+import TweetComp from "../components/TweetComp";
 
 
 const backgroundShape = require('../images/shape.svg');
@@ -44,6 +48,7 @@ const styles = theme => ({
     },
     grid: {
         width: 1200,
+        // height: 50,
         marginTop: 40,
         [theme.breakpoints.down('sm')]: {
             width: 'calc(100% - 20px)'
@@ -51,6 +56,7 @@ const styles = theme => ({
     },
     paper: {
         padding: theme.spacing(3),
+        height:'97%',
         textAlign: 'left',
         color: theme.palette.text.secondary,
     },
@@ -162,7 +168,8 @@ class Main extends Component {
             people: {count: 0, dataArray: []},
             vehicles: {count: 0, dataArray: []},
             planets: {count: 0, dataArray: []}
-        }
+        },
+        trackText: ''
     };
 
 
@@ -224,6 +231,7 @@ class Main extends Component {
             this.setState({count: counter})
         })
     }
+
 
     initializeInputStream() {
         console.log("Init input stream!!");
@@ -312,8 +320,8 @@ class Main extends Component {
                 console.log("SUBSCRIBE FINAL!!!");
                 console.log(obs);
                 obs.subscribe((val) => {
-                    console.log("THIS IS MY FINAL SUBSCRIPTION")
-                    console.log(val)
+                    console.log("THIS IS MY FINAL SUBSCRIPTION");
+                    console.log(val);
                     this.setState({
                         data: {
                             ...this.state.data,
@@ -325,6 +333,11 @@ class Main extends Component {
                     });
                 })
             });
+    }
+
+    changeTrackTest(track) {
+
+        this.setState({trackText: track})
     }
 
     renderButtons(button) {
@@ -362,10 +375,10 @@ class Main extends Component {
         getMocked().subscribe((value) => console.log(value));
         changeTrack('navidad').subscribe((value) => console.log(value));
         // socket = io('http://localhost:3001/');
-        console.log("Init sockets");
+        // console.log("Init sockets");
         // this.initializeSocketStream();
         // this.initializeTweetsStream();
-        // this.initializeCountTweetsStream()
+        // this.initializeCountTweetsStream();
         // console.log("Component mounted");
         // console.log(this.state);
         // this.initializeSearchStream();
@@ -402,6 +415,8 @@ class Main extends Component {
     render() {
         const {classes} = this.props;
         const {count} = this.state;
+        console.log("Length");
+        console.log(this.state.trackText.length);
         return (
             <React.Fragment>
                 <CssBaseline/>
@@ -409,17 +424,34 @@ class Main extends Component {
                 <div className={classes.root}>
                     <Grid container justify="center">
                         <Grid spacing={4} alignItems="center" justify="center" container className={classes.grid}>
-                            <Grid container item xs={12}>
-                                <Grid item xs={12}>
+                            <Grid container spacing={4} item xs={12}>
+                                <Grid item xs={6}>
                                     <Paper className={classes.paper}>
                                         <Typography color='secondary' variant="h5" gutterBottom>
                                             Welcome!
                                         </Typography>
-                                        <Button onClick={() => this.changeTrack()} variant='text' color="primary"
+                                        <TextField id="standard-basic"
+                                                   onChange={(event) => this.changeTrackTest(event.target.value)}
+                                                   label="Tweet topic"/>
+                                        <Button style={{paddingTop: '20px'}}
+                                                disabled={this.state.trackText.length === 0}
+                                                onClick={() => this.changeTrack()} variant='text' color="primary"
                                                 className={classes.actionButtomR} autoFocus>
                                             Change track
                                         </Button>
                                         <p>{count}</p>
+                                    </Paper>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Paper className={classes.paper}>
+                                        <TweetComp></TweetComp>
+                                    </Paper>
+                                </Grid>
+                            </Grid>
+                            <Grid container item xs={12}>
+                                <Grid item xs={12}>
+                                    <Paper className={classes.paper}>
+                                        <TweetComp></TweetComp>
                                     </Paper>
                                 </Grid>
                             </Grid>

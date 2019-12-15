@@ -129,7 +129,7 @@ class Topbar extends Component {
                   <div className={classes.inline}>
                     <Typography variant="h6" color="inherit" noWrap>
                       <Link to='/' className={classes.link}>
-                        <span className={classes.tagline}>Cloud Computing and Big Data Processingç</span>
+                        <span className={classes.tagline}>Reactive Programming project</span>
                       </Link>
                     </Typography>
                   </div>
