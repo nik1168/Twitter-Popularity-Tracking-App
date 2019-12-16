@@ -50,11 +50,18 @@ app.get('/', function (req, res, next) {
 
 app.post('/changeTrack', function (req, res, next) {
     const body = req.body;
-    console.log("body");
+    console.log("track");
     console.log(body);
     t.track(body['track']);
     t.location([]);
-    res.json({message: "ok"})
+    res.json({message: "Topic tracked succesfully"})
+});
+app.post('/untrack', function (req, res, next) {
+    const body = req.body;
+    console.log("untrack");
+    console.log(body);
+    t.untrack(body['untrack']);
+    res.json({message: "Topic untracked succesfully"})
 });
 const port = normalizePort(process.env.PORT || '3001');
 app.set('port', port);

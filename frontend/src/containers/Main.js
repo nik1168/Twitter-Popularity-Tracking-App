@@ -8,18 +8,16 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import InstructionDialog from './dialogs/InstructionDialog';
 import SwipeDialog from './dialogs/SwipeDialog';
-import {connect} from 'react-redux'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import StopIcon from '@material-ui/icons/Stop';
 import Topbar from './Topbar';
 import {bindActionCreators} from "redux";
 import * as theoremsActions from "../actions/theoretical";
-import MathNotation from "../components/MathNotation";
-import Timeline from 'react-twitter-widgets'
 import {Subject, empty, of} from 'rxjs';
 import {
     flatMap,
     map,
+    groupBy,
     distinctUntilChanged,
     filter,
     catchError, scan
@@ -29,7 +27,7 @@ import {Input, MuiThemeProvider} from '@material-ui/core';
 import {Tweet} from "../Tweet";
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import io from "socket.io-client";
-import {changeTrack, getMocked, URL_SERVER} from "../Api";
+import {changeTrack, getMocked, untrackTopic, URL_SERVER} from "../Api";
 import TextField from "@material-ui/core/TextField";
 import TweetComp from "../components/TweetComp";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
@@ -188,7 +186,9 @@ class Main extends Component {
             text: "Computer Science student :)"
         },
         trackText: 'navidad',
-        connected: false
+        topicSent: '',
+        connected: false,
+        popularHashtags: []
     };
 
 
@@ -234,7 +234,9 @@ class Main extends Component {
     initializeSocketStream() {
         console.log("Init socket stream");
         subscribeToTweets(socket, tweetsStream);
-        changeTrack(this.state.trackText).subscribe((value) => console.log(value));
+        changeTrack(this.state.trackText).subscribe((value) => {
+            this.setState({topicSent: this.state.trackText})
+        });
     }
 
     initializeTweetsStream() {
@@ -242,7 +244,7 @@ class Main extends Component {
         tweetsStream
             .subscribe((tweet) => {
                 console.log("Tweets from observable :)");
-                console.log(tweet);
+                // console.log(tweet);
                 this.setState({
                     connected: true,
                     actualTweet: tweet
@@ -255,6 +257,42 @@ class Main extends Component {
             .pipe(scan(counter => counter + 1, 0))
             .subscribe(counter => {
                 this.setState({count: counter})
+            })
+    }
+
+    initializeHashtagTweetsStream() {
+        tweetsStream
+            .pipe(
+                filter(tweet => tweet.entities.hashtags.length > 0),
+                map(tweet => tweet.entities.hashtags[0]),
+                groupBy(hashtag => hashtag.text)
+            )
+            .subscribe(groupedObservable => {
+                groupedObservable
+                    .pipe(
+                        scan((count, current) => {
+                            return {key: current, size: count.size + 1}
+                        }, {key: '', size: 0}),
+                        filter(res => {
+                            console.log("Res", res);
+                            return res.size > 5
+                        })
+                    )
+                    .subscribe((result) => {
+                        console.log("Final result papaya de zelaya");
+                        console.log(result);
+                        const stateCopy = {...this.state};
+                        const index = stateCopy.popularHashtags.findIndex((r) => r.key.text === result.key.text);
+                        if (index === -1) {
+                            stateCopy.popularHashtags.push(result);
+                        } else {
+                            stateCopy.popularHashtags[index].size = result.size;
+                        }
+                        this.setState(stateCopy)
+
+                    });
+                // console.log("Hashtags papaya de zelaya");
+                // console.log(groupedObservable)
             })
     }
 
@@ -371,10 +409,6 @@ class Main extends Component {
             <button
                 key={button.id}
                 onClick={e => {
-                    console.log("On Click :)");
-                    console.log(this.state);
-                    console.log("Button info");
-                    console.log(button);
                     prefButtonStream.next({
                         prefStatus: this.state.prefStatus,
                         status: button.status,
@@ -403,6 +437,7 @@ class Main extends Component {
         // this.initializeSocketStream();
         this.initializeTweetsStream();
         this.initializeCountTweetsStream();
+        this.initializeHashtagTweetsStream();
         const dog = "http://www.croop.cl/UI/twitter/images/doug.jpg"
         // console.log("Component mounted");
         // console.log(this.state);
@@ -434,9 +469,18 @@ class Main extends Component {
         this.setState({getStartedDialog: false});
     };
 
-    changeTrack = () => {
-        changeTrack(this.state.trackText).subscribe((value) => console.log(value));
+    untrack = () => {
+        untrackTopic(this.state.topicSent).subscribe((val) => console.log("Unsubscribe successful"))
     };
+
+    changeTrackTopic = () => {
+        this.untrack();
+        changeTrack(this.state.trackText).subscribe((value) => {
+            console.log(value);
+            this.setState({topicSent: this.state.trackText})
+        });
+    };
+
 
     disconnect = () => {
         disconnectSocket(socket);
@@ -457,10 +501,7 @@ class Main extends Component {
 
     render() {
         const {classes} = this.props;
-        const {count, actualTweet} = this.state;
-        console.log("User: ", actualTweet.user);
-        console.log("Length");
-        console.log(this.state.trackText.length);
+        const {count, actualTweet, popularHashtags} = this.state;
         return (
             <React.Fragment>
                 <CssBaseline/>
@@ -472,7 +513,7 @@ class Main extends Component {
                                 <Grid item xs={6}>
                                     <Paper className={classes.paper}>
                                         <Typography color='secondary' variant="h5" gutterBottom>
-                                            Welcome! Tweets counter: {count}
+                                            Tweets counter: {count}
                                         </Typography>
                                         <TextField id="standard-basic"
                                                    defaultValue={this.state.trackText}
@@ -480,16 +521,10 @@ class Main extends Component {
                                                    label="Tweet topic"/>
                                         <Button style={{paddingTop: '20px'}}
                                                 disabled={this.state.trackText.length === 0}
-                                                onClick={() => this.changeTrack()} variant='text' color="primary"
+                                                onClick={() => this.changeTrackTopic()} variant='text' color="primary"
                                                 autoFocus>
                                             Change track
                                         </Button>
-                                        {/*<Button style={{paddingTop: '20px'}}*/}
-                                        {/*        disabled={this.state.trackText.length === 0}*/}
-                                        {/*        onClick={() => this.disconnect()} variant='text' color="primary"*/}
-                                        {/*        className={classes.actionButtomR} autoFocus>*/}
-                                        {/*    Disconnect*/}
-                                        {/*</Button>*/}
                                         <MuiThemeProvider theme={theme}>
                                             <Button
                                                 style={{marginTop: '19px', color: 'white'}}
@@ -519,15 +554,34 @@ class Main extends Component {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Paper className={classes.paper}>
+                                        <Typography color='secondary' variant="h5" gutterBottom>
+                                            Topic {this.state.topicSent}
+                                        </Typography>
                                         <TweetComp img={actualTweet.user.profile_image_url}
                                                    user={actualTweet.screen_name} text={actualTweet.text}/>
                                     </Paper>
                                 </Grid>
                             </Grid>
-                            <Grid container item xs={12}>
-                                <Grid item xs={12}>
+                            <Grid container item spacing={4} xs={12}>
+                                <Grid item xs={6}>
                                     <Paper className={classes.paper}>
-                                        {/*<TweetComp img={actualTweet.img} user={actualTweet.user} text={actualTweet.text}></TweetComp>*/}
+                                        <Typography color='secondary' variant="h5" gutterBottom>
+                                            Popular Hashtags
+                                        </Typography>
+                                        <Typography variant="body1" gutterBottom>
+                                            {
+                                                this.state.popularHashtags.map(((res, index) => (
+                                                    <span key={index}><b>#{res.key.text}</b> : {res.size} </span>
+                                                )))
+                                            }
+                                        </Typography>
+                                    </Paper>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Paper className={classes.paper}>
+                                        <Typography color='secondary' variant="h5" gutterBottom>
+                                            Locations :P
+                                        </Typography>
                                     </Paper>
                                 </Grid>
                             </Grid>
@@ -544,16 +598,6 @@ class Main extends Component {
             </React.Fragment>
         )
     }
-}
-
-function mapStateToProps(state) {
-    return {
-        theorems: state.theorems.theorems
-    }
-}
-
-function mapDispatchToProps(dispatch) {
-    return bindActionCreators({...theoremsActions}, dispatch)
 }
 
 export default withRouter(withStyles(styles)(Main));

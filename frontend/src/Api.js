@@ -16,4 +16,15 @@ export const changeTrack = (track) =>
     })
         .then((res) => res.json()));
 
+export const untrackTopic = (untrack) =>
+    from(fetch(`${URL_SERVER}/untrack`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({untrack})
+    })
+        .then((res) => res.json()));
+
 
