@@ -9,6 +9,8 @@ import Button from '@material-ui/core/Button';
 import InstructionDialog from './dialogs/InstructionDialog';
 import SwipeDialog from './dialogs/SwipeDialog';
 import {connect} from 'react-redux'
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import StopIcon from '@material-ui/icons/Stop';
 import Topbar from './Topbar';
 import {bindActionCreators} from "redux";
 import * as theoremsActions from "../actions/theoretical";
@@ -22,18 +24,19 @@ import {
     filter,
     catchError, scan
 } from 'rxjs/operators';
-import {Input} from '@material-ui/core';
+import {Input, MuiThemeProvider} from '@material-ui/core';
 
 import {Tweet} from "../Tweet";
-import {disconnectSocket} from "../sockets/api";
+import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import io from "socket.io-client";
-import {changeTrack, getMocked} from "../Api";
+import {changeTrack, getMocked, URL_SERVER} from "../Api";
 import TextField from "@material-ui/core/TextField";
 import TweetComp from "../components/TweetComp";
+import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
+import {green, red} from "@material-ui/core/colors";
 
 
 const backgroundShape = require('../images/shape.svg');
-let socket;
 
 
 const styles = theme => ({
@@ -56,7 +59,7 @@ const styles = theme => ({
     },
     paper: {
         padding: theme.spacing(3),
-        height:'97%',
+        height: '97%',
         textAlign: 'left',
         color: theme.palette.text.secondary,
     },
@@ -114,6 +117,12 @@ const styles = theme => ({
         left: '40%'
     }
 });
+const theme = createMuiTheme({
+    palette: {
+        primary: green,
+        secondary: red
+    },
+});
 const Styles = {
     prefBut: {
         marginTop: 50,
@@ -155,8 +164,9 @@ let planetStream = new Subject();
 let vehicleStream = new Subject();
 let getDataStream = new Subject();
 let tweetsStream = new Subject();
-
+const socket = io(URL_SERVER);
 class Main extends Component {
+
 
     state = {
         learnMoredialog: false,
@@ -169,7 +179,15 @@ class Main extends Component {
             vehicles: {count: 0, dataArray: []},
             planets: {count: 0, dataArray: []}
         },
-        trackText: ''
+        actualTweet: {
+            user: {
+                profile_image_url: "http://www.croop.cl/UI/twitter/images/doug.jpg"
+            },
+            screen_name: "Niklaus",
+            text: "Computer Science student :)"
+        },
+        trackText: 'navidad',
+        connected: false
     };
 
 
@@ -213,8 +231,8 @@ class Main extends Component {
     }
 
     initializeSocketStream() {
-        console.log("Init socket stream")
-        socket.on('tweet', data => tweetsStream.next(data));
+        console.log("Init socket stream");
+        subscribeToTweets(socket, tweetsStream);
     }
 
     initializeTweetsStream() {
@@ -222,14 +240,20 @@ class Main extends Component {
         tweetsStream
             .subscribe((tweet) => {
                 console.log("Tweets from observable :)");
-                console.log(tweet)
+                console.log(tweet);
+                this.setState({
+                    connected: true,
+                    actualTweet: tweet
+                })
             })
     }
 
     initializeCountTweetsStream() {
-        tweetsStream.pipe(scan(counter => counter + 1, 0)).subscribe(counter => {
-            this.setState({count: counter})
-        })
+        tweetsStream
+            .pipe(scan(counter => counter + 1, 0))
+            .subscribe(counter => {
+                this.setState({count: counter})
+            })
     }
 
 
@@ -312,7 +336,7 @@ class Main extends Component {
                         }) // Pasing data downstream for later use
                 }),
                 catchError(err => {
-                    console.log("CATCH ERROR")
+                    console.log("CATCH ERROR");
                     return empty();
                 })
             )
@@ -373,12 +397,12 @@ class Main extends Component {
     componentDidMount() {
         console.log("Component did mount Twitter popularity");
         getMocked().subscribe((value) => console.log(value));
-        changeTrack('navidad').subscribe((value) => console.log(value));
-        // socket = io('http://localhost:3001/');
-        // console.log("Init sockets");
+        changeTrack(this.state.trackText).subscribe((value) => console.log(value));
+        console.log("Init sockets");
         // this.initializeSocketStream();
-        // this.initializeTweetsStream();
-        // this.initializeCountTweetsStream();
+        this.initializeTweetsStream();
+        this.initializeCountTweetsStream();
+        const dog = "http://www.croop.cl/UI/twitter/images/doug.jpg"
         // console.log("Component mounted");
         // console.log(this.state);
         // this.initializeSearchStream();
@@ -409,12 +433,30 @@ class Main extends Component {
     };
 
     changeTrack = () => {
-        changeTrack('navidad').subscribe((value) => console.log(value));
+        changeTrack(this.state.trackText).subscribe((value) => console.log(value));
+    };
+
+    disconnect = () => {
+        disconnectSocket(socket);
+        this.setState({connected: false})
+    };
+
+    connect = () => {
+        this.initializeSocketStream();
+    };
+
+    handleConnection = () => {
+        if (this.state.connected) {
+            this.disconnect()
+        } else {
+            this.connect()
+        }
     };
 
     render() {
         const {classes} = this.props;
-        const {count} = this.state;
+        const {count, actualTweet} = this.state;
+        console.log("User: ", actualTweet.user);
         console.log("Length");
         console.log(this.state.trackText.length);
         return (
@@ -428,30 +470,62 @@ class Main extends Component {
                                 <Grid item xs={6}>
                                     <Paper className={classes.paper}>
                                         <Typography color='secondary' variant="h5" gutterBottom>
-                                            Welcome!
+                                            Welcome! Tweets counter: {count}
                                         </Typography>
                                         <TextField id="standard-basic"
+                                                   defaultValue={this.state.trackText}
                                                    onChange={(event) => this.changeTrackTest(event.target.value)}
                                                    label="Tweet topic"/>
                                         <Button style={{paddingTop: '20px'}}
                                                 disabled={this.state.trackText.length === 0}
                                                 onClick={() => this.changeTrack()} variant='text' color="primary"
-                                                className={classes.actionButtomR} autoFocus>
+                                                autoFocus>
                                             Change track
                                         </Button>
-                                        <p>{count}</p>
+                                        {/*<Button style={{paddingTop: '20px'}}*/}
+                                        {/*        disabled={this.state.trackText.length === 0}*/}
+                                        {/*        onClick={() => this.disconnect()} variant='text' color="primary"*/}
+                                        {/*        className={classes.actionButtomR} autoFocus>*/}
+                                        {/*    Disconnect*/}
+                                        {/*</Button>*/}
+                                        <MuiThemeProvider theme={theme}>
+                                            <Button
+                                                style={{marginTop: '19px', color: 'white'}}
+                                                variant="contained"
+                                                color={!this.state.connected ? "primary" : "secondary"}
+                                                onClick={() => this.handleConnection()}
+                                                disabled={false}
+                                                startIcon={!this.state.connected ? <PlayArrowIcon/> : <StopIcon/>}
+
+                                            >
+                                                {
+                                                    this.state.connected && (
+                                                        <span>Disconnect</span>
+                                                    )
+                                                }
+                                                {
+
+                                                    !this.state.connected && (
+                                                        <span>Connect</span>
+                                                    )
+                                                }
+
+                                            </Button>
+                                        </MuiThemeProvider>
+                                        {/*<p>{count}</p>*/}
                                     </Paper>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Paper className={classes.paper}>
-                                        <TweetComp></TweetComp>
+                                        <TweetComp img={actualTweet.user.profile_image_url}
+                                                   user={actualTweet.screen_name} text={actualTweet.text}/>
                                     </Paper>
                                 </Grid>
                             </Grid>
                             <Grid container item xs={12}>
                                 <Grid item xs={12}>
                                     <Paper className={classes.paper}>
-                                        <TweetComp></TweetComp>
+                                        {/*<TweetComp img={actualTweet.img} user={actualTweet.user} text={actualTweet.text}></TweetComp>*/}
                                     </Paper>
                                 </Grid>
                             </Grid>

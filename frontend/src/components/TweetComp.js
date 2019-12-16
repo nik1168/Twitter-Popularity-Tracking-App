@@ -75,12 +75,12 @@ const styles = {
 
 class TweetComp extends Component {
     render() {
-        const {classes} = this.props;
+        const {classes,img,user,text} = this.props;
 
         return (
             <div>
                 <div className={classes.avatar}>
-                    <img className={classes.avatarimg} src="http://www.croop.cl/UI/twitter/images/doug.jpg"/>
+                    <img className={classes.avatarimg} src={img}/>
                     <div className="hover">
                         <div className="icon-twitter"/>
                     </div>
@@ -90,9 +90,9 @@ class TweetComp extends Component {
                         <div className="retweet">
                             <div className="icon-retweet"/>
                         </div>
-                        <h3 className={classes.h3}>@russel</h3> retweeted <h3 className={classes.h3}>@doug</h3><br/>
-                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea, iusto, maxime, ullam autem a
-                        voluptate rem quos repudiandae.
+                        <h3 className={classes.h3}>@{user}</h3>
+                        <br/>
+                        {text}
                         <div className="over-bubble">
                             <div className="icon-mail-reply action"/>
                             <div className="icon-retweet action"/>

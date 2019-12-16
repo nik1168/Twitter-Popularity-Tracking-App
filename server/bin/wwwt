@@ -78,7 +78,7 @@ server.on('listening', onListening);
 
 io.on("connection", function (socket) {
     t.on('tweet', function (tweet) {
-        console.log('tweet received', tweet);
+        // console.log('tweet received', tweet);
         const data = {
             'name': tweet.user.name,
             'screen_name': tweet.user.screen_name,

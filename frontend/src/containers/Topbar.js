@@ -115,7 +115,7 @@ class Topbar extends Component {
     if(this.props.currentPath === '/demo') {
       return 3
     }
-  }
+  };
 
   render() {
 
