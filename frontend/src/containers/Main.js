@@ -13,14 +13,14 @@ import StopIcon from '@material-ui/icons/Stop';
 import Topbar from './Topbar';
 import {bindActionCreators} from "redux";
 import * as theoremsActions from "../actions/theoretical";
-import {Subject, empty, of} from 'rxjs';
+import {Subject, empty, of, timer} from 'rxjs';
 import {
     flatMap,
     map,
     groupBy,
     distinctUntilChanged,
     filter,
-    catchError, scan
+    catchError, scan, debounce
 } from 'rxjs/operators';
 import {Input, MuiThemeProvider} from '@material-ui/core';
 
@@ -242,6 +242,7 @@ class Main extends Component {
     initializeTweetsStream() {
         console.log("Init input stream!!");
         tweetsStream
+            .pipe(debounce(() => timer(50)))
             .subscribe((tweet) => {
                 console.log("Tweets from observable :)");
                 // console.log(tweet);
@@ -275,7 +276,7 @@ class Main extends Component {
                         }, {key: '', size: 0}),
                         filter(res => {
                             console.log("Res", res);
-                            return res.size > 5
+                            return res.size > 2
                         })
                     )
                     .subscribe((result) => {
