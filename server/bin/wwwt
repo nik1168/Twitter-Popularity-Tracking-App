@@ -53,6 +53,7 @@ app.post('/changeTrack', function (req, res, next) {
     console.log("body");
     console.log(body);
     t.track(body['track']);
+    t.location([]);
     res.json({message: "ok"})
 });
 const port = normalizePort(process.env.PORT || '3001');

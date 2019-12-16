@@ -165,6 +165,7 @@ let vehicleStream = new Subject();
 let getDataStream = new Subject();
 let tweetsStream = new Subject();
 const socket = io(URL_SERVER);
+
 class Main extends Component {
 
 
@@ -233,6 +234,7 @@ class Main extends Component {
     initializeSocketStream() {
         console.log("Init socket stream");
         subscribeToTweets(socket, tweetsStream);
+        changeTrack(this.state.trackText).subscribe((value) => console.log(value));
     }
 
     initializeTweetsStream() {
@@ -397,7 +399,6 @@ class Main extends Component {
     componentDidMount() {
         console.log("Component did mount Twitter popularity");
         getMocked().subscribe((value) => console.log(value));
-        changeTrack(this.state.trackText).subscribe((value) => console.log(value));
         console.log("Init sockets");
         // this.initializeSocketStream();
         this.initializeTweetsStream();
@@ -413,6 +414,7 @@ class Main extends Component {
 
     componentWillUnmount() {
         console.log("Component will unmount");
+        disconnectSocket(socket);
         // socket.disconnect()
     }
 
