@@ -27,6 +27,7 @@ class MapNik extends React.Component {
         console.log("data: ", data.length);
         // check if position has changed
         this.updateCircles(this.props.data);
+        // TODO: Implement hover with observables and lets finish this
         // this.marker.setLatLng(this.props.markerPosition);
 
     }
