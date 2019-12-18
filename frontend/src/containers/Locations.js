@@ -13,9 +13,17 @@ import Topbar from './Topbar';
 import MapNik from "../components/Map";
 import {Subject, timer} from "rxjs";
 import {debounce, map, filter} from "rxjs/operators";
+
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import {changeTrack} from "../Api";
-
+import TweetComp from "../components/TweetComp";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import Avatar from "@material-ui/core/Avatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import Divider from "@material-ui/core/Divider";
+import L from 'leaflet';
 
 const numeral = require('numeral');
 numeral.defaultFormat('0,000');
@@ -24,7 +32,11 @@ const styles = theme => ({
     root: {
         // flexGrow: 1,
         backgroundColor: theme.palette.grey['100'],
-        overflow: 'hidden',
+        overflow: 'auto',
+        height : 200
+    },
+    inline: {
+        display: 'inline',
     },
     grid: {
         width: 1200,
@@ -125,9 +137,8 @@ class Locations extends Component {
             .subscribe((tweet) => {
                 console.log("Tweets from observable :)");
                 console.log(tweet);
-                const {coordinates} = tweet.coordinates;
                 const stateCopy = {...this.state};
-                stateCopy.data.push([coordinates[1], coordinates[0], 800]);
+                stateCopy.data.push(tweet);
                 this.setState(stateCopy);
                 console.log("data");
                 console.log(stateCopy.data)
@@ -150,7 +161,38 @@ class Locations extends Component {
             <div>
                 <CssBaseline/>
                 <Topbar currentPath={currentPath}/>
-                <MapNik data={this.state.data}></MapNik>
+                <MapNik data={this.state.data}/>
+                <List className={classes.root}>
+                    {
+                        this.state.data.map((tweet)=>(
+                            <div key={tweet.id} id={tweet.id}>
+                                <ListItem alignItems="flex-start">
+                                    <ListItemAvatar>
+                                        <Avatar alt="Remy Sharp" src={tweet.user.profile_image_url} />
+                                    </ListItemAvatar>
+
+                                    <ListItemText
+                                        primary={<a href={"http://twitter.com/"+tweet.screen_name+"/status/"+tweet.id+""}>{tweet.screen_name}</a>}
+                                        secondary={
+                                            <React.Fragment>
+                                                <Typography
+                                                    component="span"
+                                                    variant="body2"
+                                                    className={classes.inline}
+                                                    color="textPrimary"
+                                                >
+                                                </Typography>
+                                                {tweet.text}
+                                            </React.Fragment>
+                                        }
+                                    />
+                                </ListItem>
+                                <Divider variant="inset" component="li" />
+                            </div>
+
+                        ))
+                    }
+                </List>
             </div>
         )
     }

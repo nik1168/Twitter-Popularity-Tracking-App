@@ -37,6 +37,7 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
+    "rx-dom": "^7.0.3",
     "rxjs": "^6.5.3",
     "socket.io-client": "^2.3.0",
     "sort-by": "^1.2.0"

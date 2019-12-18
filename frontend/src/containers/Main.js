@@ -273,7 +273,7 @@ class Main extends Component {
                             return {key: current, size: count.size + 1}
                         }, {key: '', size: 0}),
                         filter(res => {
-                            return res.size > 2
+                            return res.size > 1
                         })
                     )
                     .subscribe((result) => {

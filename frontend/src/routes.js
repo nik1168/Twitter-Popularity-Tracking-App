@@ -13,9 +13,7 @@ export default ({store}) => (
             <ScrollToTop>
                 <Switch>
                     <Route exact path='/' component={Main}/>
-                    <Route exact path='/tanalysis' component={TheoreticalAnalysis}/>
                     <Route exact path='/locations' component={Locations}/>
-                    <Route exact path='/demo' component={Demo}/>
                 </Switch>
             </ScrollToTop>
         </HashRouter>
