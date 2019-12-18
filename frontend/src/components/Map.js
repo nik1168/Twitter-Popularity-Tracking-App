@@ -9,7 +9,7 @@ class MapNik extends React.Component {
 
 
     componentDidMount() {
-        console.log("Component did mount map")
+        console.log("Component did mount map");
 
         // create map
         this.map = L.map('map', {
@@ -34,15 +34,11 @@ class MapNik extends React.Component {
         console.log("data: ", data.length);
         // check if position has changed
         this.updateCircles(this.props.data);
-        // TODO: Implement hover with observables and lets finish this
-        // this.marker.setLatLng(this.props.markerPosition);
-
     }
 
     updateCircles(circles) {
-        console.log("Update circles!!!");
         this.layer.clearLayers();
-        const self = this
+        const self = this;
         circles.forEach(tweet => {
             const {coordinates} = tweet.coordinates;
             const circle = L.circle([coordinates[1], coordinates[0]],  {radius: 800}).addTo(this.layer);
@@ -50,11 +46,7 @@ class MapNik extends React.Component {
             this.tweetsLayer.addLayer(circle);
             this.codeLayers[tweet.id] = this.tweetsLayer.getLayerId(circle);
             const element = document.getElementById(tweet.id);
-            console.log("ELement");
-            console.log(element);
             this.isHovering(element).subscribe(function(hovering) {
-                console.log("Is hovering???");
-                console.log(hovering);
                 element.style.cursor = hovering? 'pointer' : 'default';
                 circle.setStyle({ color: hovering ? '#ff0000' : '#0000ff' });
                 // mark.setStyle({color: hovering ? '#ff0000' : '#0000ff' });

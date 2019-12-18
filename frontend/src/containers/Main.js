@@ -58,7 +58,8 @@ const styles = theme => ({
     },
     paper: {
         padding: theme.spacing(3),
-        height: '97%',
+        height: '250px',
+        overflow : 'auto',
         textAlign: 'left',
         color: theme.palette.text.secondary,
     },
@@ -155,13 +156,7 @@ const Styles = {
         borderRadius: 2
     }
 };
-let makeCallStream = new Subject();
-let prefButtonStream = new Subject();
-let inputStream = new Subject();
-let peopleStream = new Subject();
-let planetStream = new Subject();
-let vehicleStream = new Subject();
-let getDataStream = new Subject();
+
 let tweetsStream = new Subject();
 
 class Main extends Component {
@@ -192,45 +187,6 @@ class Main extends Component {
         popularHashtags: []
     };
 
-
-    initializeSearchStream() {
-        makeCallStream
-            .pipe(
-                filter(val => this.state.searchText !== ''),
-                map(val => {
-                    console.log("Value for map");
-                    return val.value;
-                }),
-                flatMap(val => {
-                    console.log("Val for flat map");
-                    console.log(val);
-                    let arr = [];
-                    this.state.prefStatus.map((item, index) => {
-                        if (item[Object.keys(item)[0]]) {
-                            arr.push({pref: item, text: val});
-                        }
-                    });
-                    return of(arr);
-                })
-            )
-            .subscribe(val => {
-                console.log("Subcsribe :P :P")
-                console.log(val);
-                val.map((item, index) => {
-                    switch (Object.keys(item.pref)[0]) {
-                        case 'people':
-                            peopleStream.next({searchText: item.text});
-                            break;
-                        case 'planets':
-                            planetStream.next({searchText: item.text});
-                            break;
-                        case 'vehicles':
-                            vehicleStream.next({searchText: item.text});
-                            break;
-                    }
-                });
-            });
-    }
 
     initializeSocketStream() {
         console.log("Init socket stream");
@@ -298,155 +254,17 @@ class Main extends Component {
             })
     }
 
-
-    initializeInputStream() {
-        console.log("Init input stream!!");
-        inputStream.subscribe(val => {
-            console.log("Cambios que hay en mi");
-            this.setState({
-                searchText: val.value
-            });
-        });
-    }
-
-    initializePrefButtonStream() {
-        prefButtonStream
-            .pipe(
-                filter(button => {
-                    console.log("So we are filtering");
-                    let count = 0;
-                    button.prefStatus.map(
-                        (item, index) => (item[Object.keys(item)[0]] ? count++ : undefined)
-                    );
-                    return count > 1 ? true : !button.status;
-                }),
-                filter(button => this.state.searchText !== '')
-            )
-            .subscribe(button => {
-                console.log("Button value");
-                console.log(button);
-                this.state.prefStatus[button.index][button.pref] = !this.state
-                    .prefStatus[button.index][button.pref];
-                this.setState(
-                    {
-                        prefStatus: this.state.prefStatus
-                    },
-                    () => makeCallStream.next({value: this.state.searchText})
-                );
-            });
-    }
-
-    initializeDataStreams() {
-        peopleStream
-            .pipe(map(val => val.searchText), distinctUntilChanged())
-            .subscribe(val => {
-                console.log("PEOPLE STREAM!!");
-                console.log(val);
-                getDataStream.next({searchText: val, pref: 'people'});
-            });
-        planetStream
-            .pipe(map(val => val.searchText), distinctUntilChanged())
-            .subscribe(val => {
-                    console.log("Value planets");
-                    console.log(val);
-                    getDataStream.next({searchText: val, pref: 'planets'})
-                }
-            );
-        vehicleStream
-            .pipe(map(val => val.searchText), distinctUntilChanged())
-            .subscribe(val =>
-                getDataStream.next({
-                    searchText: val,
-                    pref: 'vehicles'
-                })
-            );
-        getDataStream
-            .pipe(
-                flatMap(val => {
-                    console.log('getting new data', val);
-                    let outVal = val;
-                    console.log("URL");
-                    console.log(`https://swapi.co/api/${val.pref}/?search=${val.searchText}`);
-                    return fetch(
-                        `https://swapi.co/api/${val.pref}/?search=${val.searchText}`
-                    )
-                        .then(val => val.json())
-                        .then(val => {
-                            console.log("Response from server");
-                            console.log(val);
-                            return of({pref: outVal.pref, res: val})
-                        }) // Pasing data downstream for later use
-                }),
-                catchError(err => {
-                    console.log("CATCH ERROR");
-                    return empty();
-                })
-            )
-            .subscribe(obs => {
-                console.log("SUBSCRIBE FINAL!!!");
-                console.log(obs);
-                obs.subscribe((val) => {
-                    console.log("THIS IS MY FINAL SUBSCRIPTION");
-                    console.log(val);
-                    this.setState({
-                        data: {
-                            ...this.state.data,
-                            [val.pref]: {
-                                count: val.res.count,
-                                dataArray: val.res.results
-                            }
-                        }
-                    });
-                })
-            });
-    }
-
     changeTrackTest(track) {
 
         this.setState({trackText: track})
     }
 
-    renderButtons(button) {
-        return (
-            <button
-                key={button.id}
-                onClick={e => {
-                    prefButtonStream.next({
-                        prefStatus: this.state.prefStatus,
-                        status: button.status,
-                        pref: button.name,
-                        searchText: this.state.searchText,
-                        index: button.id
-                    })
-                }
-
-                }
-                style={{
-                    ...Styles.prefBut,
-                    ...{background: button.status ? 'yellow' : undefined}
-                }}
-            >
-                {button.name}
-            </button>
-        );
-    }
-
-
     componentDidMount() {
         console.log("Component did mount Twitter popularity");
-        // getMocked().subscribe((value) => console.log(value));
         console.log("Init sockets");
-        // this.initializeSocketStream();
         this.initializeTweetsStream();
         this.initializeCountTweetsStream();
         this.initializeHashtagTweetsStream();
-        const dog = "http://www.croop.cl/UI/twitter/images/doug.jpg"
-        // console.log("Component mounted");
-        // console.log(this.state);
-        // this.initializeSearchStream();
-        // this.initializePrefButtonStream();
-        // this.initializeInputStream();
-        // this.initializeDataStreams();
     }
 
     componentWillUnmount() {
@@ -499,7 +317,6 @@ class Main extends Component {
     render() {
         const {classes} = this.props;
         const {count, actualTweet, popularHashtags} = this.state;
-        console.log(actualTweet)
         return (
             <React.Fragment>
                 <CssBaseline/>
@@ -547,7 +364,6 @@ class Main extends Component {
 
                                             </Button>
                                         </MuiThemeProvider>
-                                        {/*<p>{count}</p>*/}
                                     </Paper>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -569,8 +385,12 @@ class Main extends Component {
                                         </Typography>
                                         <Typography variant="body1" gutterBottom>
                                             {
-                                                this.state.popularHashtags.map(((res, index) => (
-                                                    <span key={index}><b>#{res.key.text}</b> : {res.size} </span>
+                                                this.state.popularHashtags.sort((a,b)=>b.size-a.size).map(((res, index) => (
+                                                    <span>
+                                                         <span key={index}><b>#{res.key.text}</b> : {res.size} </span>
+                                                        <br/>
+                                                    </span>
+
                                                 )))
                                             }
                                         </Typography>

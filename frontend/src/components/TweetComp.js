@@ -76,9 +76,6 @@ const styles = {
 class TweetComp extends Component {
     render() {
         const {classes, img, user, text, username, id} = this.props;
-        console.log(user)
-        console.log(id)
-
         return (
             <div>
                 <div className={classes.avatar}>
