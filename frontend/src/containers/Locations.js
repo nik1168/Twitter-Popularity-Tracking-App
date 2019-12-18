@@ -12,7 +12,7 @@ import Loading from './common/Loading';
 import Topbar from './Topbar';
 import MapNik from "../components/Map";
 import {Subject, timer} from "rxjs";
-import {debounce, map, filter} from "rxjs/operators";
+import {debounce, map, filter, startWith} from "rxjs/operators";
 
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import {changeTrack} from "../Api";
@@ -33,7 +33,7 @@ const styles = theme => ({
         // flexGrow: 1,
         backgroundColor: theme.palette.grey['100'],
         overflow: 'auto',
-        height : 200
+        height: 200
     },
     inline: {
         display: 'inline',
@@ -132,6 +132,13 @@ class Locations extends Component {
         this.initializeSocketStream();
         tweetsStream
             .pipe(
+                startWith({
+                    id : "1207339939769257989",
+                    screen_name : "Nik1168",
+                    coordinates : {coordinates : [100.883, 12.9333]},
+                    text : "Doing a project for a Cloud Computing Course at #VUB using #RxJS and #React",
+                    user : {profile_image_url: "http://www.croop.cl/UI/twitter/images/doug.jpg"}
+                }),
                 filter(tweet => tweet.coordinates !== null)
             )
             .subscribe((tweet) => {
@@ -164,15 +171,16 @@ class Locations extends Component {
                 <MapNik data={this.state.data}/>
                 <List className={classes.root}>
                     {
-                        this.state.data.map((tweet)=>(
+                        this.state.data.map((tweet) => (
                             <div key={tweet.id} id={tweet.id}>
                                 <ListItem alignItems="flex-start">
                                     <ListItemAvatar>
-                                        <Avatar alt="Remy Sharp" src={tweet.user.profile_image_url} />
+                                        <Avatar alt="Remy Sharp" src={tweet.user.profile_image_url}/>
                                     </ListItemAvatar>
 
                                     <ListItemText
-                                        primary={<a href={"http://twitter.com/"+tweet.screen_name+"/status/"+tweet.id+""}>{tweet.screen_name}</a>}
+                                        primary={<a
+                                            href={"http://twitter.com/" + tweet.screen_name + "/status/" + tweet.id + ""}>{tweet.screen_name}</a>}
                                         secondary={
                                             <React.Fragment>
                                                 <Typography
@@ -187,7 +195,7 @@ class Locations extends Component {
                                         }
                                     />
                                 </ListItem>
-                                <Divider variant="inset" component="li" />
+                                <Divider variant="inset" component="li"/>
                             </div>
 
                         ))

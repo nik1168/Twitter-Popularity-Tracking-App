@@ -20,7 +20,8 @@ import {
     groupBy,
     distinctUntilChanged,
     filter,
-    catchError, scan, debounce
+    catchError, scan, debounce,
+    startWith
 } from 'rxjs/operators';
 import {Input, MuiThemeProvider} from '@material-ui/core';
 
@@ -242,7 +243,10 @@ class Main extends Component {
     initializeTweetsStream() {
         console.log("Init input stream!!");
         tweetsStream
-            .pipe(debounce(() => timer(50)))
+            .pipe(
+                // startWith(this.state.actualTweet),
+                debounce(() => timer(50))
+            )
             .subscribe((tweet) => {
                 this.setState({
                     connected: true,
