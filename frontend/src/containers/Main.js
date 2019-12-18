@@ -20,6 +20,7 @@ import {
     groupBy,
     distinctUntilChanged,
     filter,
+    distinct,
     catchError, scan, debounce,concatAll,
     startWith
 } from 'rxjs/operators';
@@ -184,7 +185,8 @@ class Main extends Component {
         trackText: 'navidad',
         topicSent: '',
         connected: false,
-        popularHashtags: []
+        popularHashtags: [],
+        languages: []
     };
 
 
@@ -255,6 +257,18 @@ class Main extends Component {
             })
     }
 
+    initializeLanguageTweetsStream() {
+        tweetsStream
+            .pipe(distinct(tweet => tweet.lang))
+            .subscribe(tweet => {
+                console.log("Tweet!!!");
+                console.log(tweet)
+                const stateCopy = {...this.state};
+                stateCopy.languages.push(tweet.lang);
+                this.setState(stateCopy)
+            })
+    }
+
     changeTrackTest(track) {
 
         this.setState({trackText: track})
@@ -266,6 +280,7 @@ class Main extends Component {
         this.initializeTweetsStream();
         this.initializeCountTweetsStream();
         this.initializeHashtagTweetsStream();
+        this.initializeLanguageTweetsStream()
     }
 
     componentWillUnmount() {
@@ -400,7 +415,18 @@ class Main extends Component {
                                 <Grid item xs={6}>
                                     <Paper className={classes.paper}>
                                         <Typography color='secondary' variant="h5" gutterBottom>
-                                            Locations :P
+                                            Languages
+                                        </Typography>
+                                        <Typography variant="body1" gutterBottom>
+                                            {
+                                                this.state.languages.map(((res, index) => (
+                                                    <span>
+                                                         <span key={index}><b>{res}</b></span>
+                                                        <br/>
+                                                    </span>
+
+                                                )))
+                                            }
                                         </Typography>
                                     </Paper>
                                 </Grid>

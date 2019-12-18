@@ -100,7 +100,8 @@ io.on("connection", function (socket) {
             'place': tweet.place,
             'retweet_count': tweet.retweet_count,
             'favorite_count': tweet.favorite_count,
-            'entities': tweet.entities
+            'entities': tweet.entities,
+            'lang' : tweet.lang
         };
         socket.emit('tweet', data);
     });
