@@ -36,6 +36,7 @@ class MapNik extends React.Component {
         this.layer.clearLayers();
         circles.forEach(marker => {
             L.circle([marker[0], marker[1]],  {radius: marker[2]}).addTo(this.layer);
+            L.marker([marker[0], marker[1]]).addTo(this.layer);
         });
     }
 
