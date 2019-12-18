@@ -12,10 +12,9 @@ import Loading from './common/Loading';
 import Topbar from './Topbar';
 import MapNik from "../components/Map";
 import {Subject, timer} from "rxjs";
-import {debounce} from "rxjs/operators";
-
-
-
+import {debounce, map, filter} from "rxjs/operators";
+import {disconnectSocket, subscribeToTweets} from "../sockets/api";
+import {changeTrack} from "../Api";
 
 
 const numeral = require('numeral');
@@ -90,6 +89,12 @@ const styles = theme => ({
 let tweetsStream = new Subject();
 
 class Locations extends Component {
+    initializeSocketStream() {
+        console.log("Init socket stream");
+        subscribeToTweets(tweetsStream);
+        changeTrack(this.state.trackText).subscribe((value) => {
+        });
+    }
 
     state = {
         loading: true,
@@ -104,19 +109,35 @@ class Locations extends Component {
         lat: 51.505,
         lng: -0.09,
         zoom: 13,
+        trackText: 'christmas'
+        // trackText: 'christmas'
 
     };
 
 
     componentDidMount() {
         console.log("Component did mount maps");
+        this.initializeSocketStream();
         tweetsStream
-            .pipe(debounce(() => timer(50)))
+            .pipe(
+                filter(tweet => tweet.coordinates !== null)
+            )
             .subscribe((tweet) => {
                 console.log("Tweets from observable :)");
                 console.log(tweet);
-
+                const {coordinates} = tweet.coordinates;
+                const stateCopy = {...this.state};
+                stateCopy.data.push([coordinates[1], coordinates[0], 800]);
+                this.setState(stateCopy);
+                console.log("data");
+                console.log(stateCopy.data)
             })
+    }
+
+    componentWillUnmount() {
+        console.log("Component will unmount locations");
+        disconnectSocket();
+        // socket.disconnect()
     }
 
 
@@ -129,7 +150,7 @@ class Locations extends Component {
             <div>
                 <CssBaseline/>
                 <Topbar currentPath={currentPath}/>
-                <MapNik></MapNik>
+                <MapNik data={this.state.data}></MapNik>
             </div>
         )
     }

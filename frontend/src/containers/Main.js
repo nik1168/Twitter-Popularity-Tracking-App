@@ -162,7 +162,6 @@ let planetStream = new Subject();
 let vehicleStream = new Subject();
 let getDataStream = new Subject();
 let tweetsStream = new Subject();
-const socket = io(URL_SERVER);
 
 class Main extends Component {
 
@@ -182,8 +181,9 @@ class Main extends Component {
             user: {
                 profile_image_url: "http://www.croop.cl/UI/twitter/images/doug.jpg"
             },
-            screen_name: "Niklaus",
-            text: "Computer Science student :)"
+            screen_name: "Nik1168",
+            text: "Computer Science student :)",
+            id:"1181810060453961730"
         },
         trackText: 'navidad',
         topicSent: '',
@@ -233,7 +233,7 @@ class Main extends Component {
 
     initializeSocketStream() {
         console.log("Init socket stream");
-        subscribeToTweets(socket, tweetsStream);
+        subscribeToTweets(tweetsStream);
         changeTrack(this.state.trackText).subscribe((value) => {
             this.setState({topicSent: this.state.trackText})
         });
@@ -244,8 +244,6 @@ class Main extends Component {
         tweetsStream
             .pipe(debounce(() => timer(50)))
             .subscribe((tweet) => {
-                console.log("Tweets from observable :)");
-                // console.log(tweet);
                 this.setState({
                     connected: true,
                     actualTweet: tweet
@@ -275,7 +273,6 @@ class Main extends Component {
                             return {key: current, size: count.size + 1}
                         }, {key: '', size: 0}),
                         filter(res => {
-                            console.log("Res", res);
                             return res.size > 2
                         })
                     )
@@ -433,7 +430,7 @@ class Main extends Component {
 
     componentDidMount() {
         console.log("Component did mount Twitter popularity");
-        getMocked().subscribe((value) => console.log(value));
+        // getMocked().subscribe((value) => console.log(value));
         console.log("Init sockets");
         // this.initializeSocketStream();
         this.initializeTweetsStream();
@@ -450,7 +447,7 @@ class Main extends Component {
 
     componentWillUnmount() {
         console.log("Component will unmount");
-        disconnectSocket(socket);
+        disconnectSocket();
         // socket.disconnect()
     }
 
@@ -470,12 +467,7 @@ class Main extends Component {
         this.setState({getStartedDialog: false});
     };
 
-    untrack = () => {
-        untrackTopic(this.state.topicSent).subscribe((val) => console.log("Unsubscribe successful"))
-    };
-
     changeTrackTopic = () => {
-        this.untrack();
         changeTrack(this.state.trackText).subscribe((value) => {
             console.log(value);
             this.setState({topicSent: this.state.trackText})
@@ -484,7 +476,7 @@ class Main extends Component {
 
 
     disconnect = () => {
-        disconnectSocket(socket);
+        disconnectSocket();
         this.setState({connected: false})
     };
 
@@ -503,6 +495,7 @@ class Main extends Component {
     render() {
         const {classes} = this.props;
         const {count, actualTweet, popularHashtags} = this.state;
+        console.log(actualTweet)
         return (
             <React.Fragment>
                 <CssBaseline/>
@@ -559,6 +552,7 @@ class Main extends Component {
                                             Topic {this.state.topicSent}
                                         </Typography>
                                         <TweetComp img={actualTweet.user.profile_image_url}
+                                                   id={actualTweet.id}
                                                    user={actualTweet.screen_name} text={actualTweet.text}/>
                                     </Paper>
                                 </Grid>

@@ -52,6 +52,7 @@ app.post('/changeTrack', function (req, res, next) {
     const body = req.body;
     console.log("track");
     console.log(body);
+    t.untrackAll()
     t.track(body['track']);
     t.location([]);
     res.json({message: "Topic tracked succesfully"})
@@ -88,6 +89,7 @@ io.on("connection", function (socket) {
     t.on('tweet', function (tweet) {
         // console.log('tweet received', tweet);
         const data = {
+            'id' : tweet.id_str,
             'name': tweet.user.name,
             'screen_name': tweet.user.screen_name,
             'text': tweet.text,

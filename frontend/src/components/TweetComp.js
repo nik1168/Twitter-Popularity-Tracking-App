@@ -75,7 +75,9 @@ const styles = {
 
 class TweetComp extends Component {
     render() {
-        const {classes,img,user,text} = this.props;
+        const {classes, img, user, text, username, id} = this.props;
+        console.log(user)
+        console.log(id)
 
         return (
             <div>
@@ -90,21 +92,22 @@ class TweetComp extends Component {
                         <div className="retweet">
                             <div className="icon-retweet"/>
                         </div>
-                        <h3 className={classes.h3}>@{user}</h3>
-                        <br/>
-                        {text}
-                        <div className="over-bubble">
-                            <div className="icon-mail-reply action"/>
-                            <div className="icon-retweet action"/>
-                            <div className="icon-star"/>
-                        </div>
+                            <h3 className={classes.h3}><a
+                                href={"http://twitter.com/"+user+"/status/"+id+""}>@{user}</a></h3>
+                            <br/>
+                            {text}
+                            <div className="over-bubble">
+                                <div className="icon-mail-reply action"/>
+                                <div className="icon-retweet action"/>
+                                <div className="icon-star"/>
+                            </div>
                     </div>
 
                     <div className="arrow"/>
                 </div>
             </div>
-        )
+    )
     }
-}
+    }
 
-export default withStyles(styles)(TweetComp)
+    export default withStyles(styles)(TweetComp)
