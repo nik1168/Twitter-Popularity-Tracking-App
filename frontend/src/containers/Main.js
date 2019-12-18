@@ -222,7 +222,6 @@ class Main extends Component {
     initializeHashtagTweetsStream() {
         tweetsStream
             .pipe(
-                debounce(() => timer(300)),
                 filter(tweet => tweet.entities.hashtags.length > 0),
                 map(tweet => from(tweet.entities.hashtags)),
                 concatAll(), // merge observables :)
