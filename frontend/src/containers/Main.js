@@ -13,14 +13,14 @@ import StopIcon from '@material-ui/icons/Stop';
 import Topbar from './Topbar';
 import {bindActionCreators} from "redux";
 import * as theoremsActions from "../actions/theoretical";
-import {Subject, empty, of, timer} from 'rxjs';
+import {Subject, empty, of, timer, from} from 'rxjs';
 import {
     flatMap,
     map,
     groupBy,
     distinctUntilChanged,
     filter,
-    catchError, scan, debounce,
+    catchError, scan, debounce,concatAll,
     startWith
 } from 'rxjs/operators';
 import {Input, MuiThemeProvider} from '@material-ui/core';
@@ -222,8 +222,10 @@ class Main extends Component {
     initializeHashtagTweetsStream() {
         tweetsStream
             .pipe(
+                debounce(() => timer(300)),
                 filter(tweet => tweet.entities.hashtags.length > 0),
-                map(tweet => tweet.entities.hashtags[0]),
+                map(tweet => from(tweet.entities.hashtags)),
+                concatAll(), // merge observables :)
                 groupBy(hashtag => hashtag.text)
             )
             .subscribe(groupedObservable => {
