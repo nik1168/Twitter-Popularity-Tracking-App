@@ -52,7 +52,7 @@ app.post('/changeTrack', function (req, res, next) {
     const body = req.body;
     console.log("track");
     console.log(body);
-    t.untrackAll()
+    t.untrackAll();
     t.track(body['track']);
     t.location([]);
     res.json({message: "Topic tracked succesfully"})

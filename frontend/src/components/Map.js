@@ -42,14 +42,14 @@ class MapNik extends React.Component {
         circles.forEach(tweet => {
             const {coordinates} = tweet.coordinates;
             const circle = L.circle([coordinates[1], coordinates[0]],  {radius: 800}).addTo(this.layer);
-            const mark = L.marker([coordinates[1], coordinates[0]]).addTo(this.layer);
+            const mark = L.marker([coordinates[1], coordinates[0]],{opacity:0.65}).addTo(this.layer);
             this.tweetsLayer.addLayer(circle);
             this.codeLayers[tweet.id] = this.tweetsLayer.getLayerId(circle);
             const element = document.getElementById(tweet.id);
             this.isHovering(element).subscribe(function(hovering) {
                 element.style.cursor = hovering? 'pointer' : 'default';
                 circle.setStyle({ color: hovering ? '#ff0000' : '#0000ff' });
-                // mark.setStyle({color: hovering ? '#ff0000' : '#0000ff' });
+                mark.setOpacity(hovering? 1 : 0.65)
             });
             Rx.DOM.click(element).subscribe(function() { self.map.panTo(circle.getLatLng(),5);
             });
