@@ -1,6 +1,6 @@
-import React,  { Component } from 'react';
+import React, {Component} from 'react';
 import withStyles from '@material-ui/styles/withStyles';
-import { Link, withRouter } from 'react-router-dom';
+import {Link, withRouter} from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -13,7 +13,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
-import { Link as MaterialLink } from '@material-ui/core'
+import {Link as MaterialLink} from '@material-ui/core'
 import Menu from '../components/Menu';
 
 const logo = require('../images/logo.svg');

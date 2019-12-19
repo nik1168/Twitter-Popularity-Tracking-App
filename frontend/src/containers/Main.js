@@ -6,30 +6,14 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import InstructionDialog from './dialogs/InstructionDialog';
-import SwipeDialog from './dialogs/SwipeDialog';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import StopIcon from '@material-ui/icons/Stop';
 import Topbar from './Topbar';
-import {bindActionCreators} from "redux";
-import * as theoremsActions from "../actions/theoretical";
-import {Subject, empty, of, timer, from} from 'rxjs';
-import {
-    flatMap,
-    map,
-    groupBy,
-    distinctUntilChanged,
-    filter,
-    distinct,
-    catchError, scan, debounce,concatAll,
-    startWith
-} from 'rxjs/operators';
-import {Input, MuiThemeProvider} from '@material-ui/core';
-
-import {Tweet} from "../Tweet";
+import {from, Subject, timer} from 'rxjs';
+import {concatAll, debounce, distinct, filter, groupBy, map, scan} from 'rxjs/operators';
+import {MuiThemeProvider} from '@material-ui/core';
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
-import io from "socket.io-client";
-import {changeTrack, getMocked, untrackTopic, URL_SERVER} from "../Api";
+import {changeTrack} from "../Api";
 import TextField from "@material-ui/core/TextField";
 import TweetComp from "../components/TweetComp";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
@@ -434,13 +418,6 @@ class Main extends Component {
                             </Grid>
                         </Grid>
                     </Grid>
-                    <SwipeDialog
-                        open={this.state.learnMoredialog}
-                        onClose={this.dialogClose}/>
-                    <InstructionDialog
-                        open={this.state.getStartedDialog}
-                        onClose={this.closeGetStartedDialog}
-                    />
                 </div>
             </React.Fragment>
         )
@@ -448,4 +425,4 @@ class Main extends Component {
 }
 
 export default withRouter(withStyles(styles)(Main));
-// export default connect(mapStateToProps, mapDispatchToProps)(withRouter(withStyles(styles)(Main)))
+

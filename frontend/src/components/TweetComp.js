@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import withStyles from '@material-ui/styles/withStyles';
-import {withRouter} from "react-router-dom";
 
 const styles = {
     avatar: {
@@ -75,7 +74,7 @@ const styles = {
 
 class TweetComp extends Component {
     render() {
-        const {classes, img, user, text, username, id} = this.props;
+        const {classes, img, user, text, id} = this.props;
         return (
             <div>
                 <div className={classes.avatar}>

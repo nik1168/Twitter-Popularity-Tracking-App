@@ -9,7 +9,6 @@ class MapNik extends React.Component {
 
 
     componentDidMount() {
-        console.log("Component did mount map");
 
         // create map
         this.map = L.map('map', {
@@ -29,9 +28,6 @@ class MapNik extends React.Component {
     }
 
     componentDidUpdate({data}) {
-        console.log("Component did update map");
-        console.log("this.props.data.length: ", this.props.data.length);
-        console.log("data: ", data.length);
         // check if position has changed
         this.updateCircles(this.props.data);
     }

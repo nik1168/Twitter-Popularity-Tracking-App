@@ -1,29 +1,22 @@
 import React, {Component} from 'react';
 import withStyles from '@material-ui/styles/withStyles';
-import {withRouter, Link} from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import Months from './common/Months';
-import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
-import Loading from './common/Loading';
 
 import Topbar from './Topbar';
 import MapNik from "../components/Map";
-import {Subject, timer} from "rxjs";
-import {debounce, map, filter, startWith} from "rxjs/operators";
+import {Subject} from "rxjs";
+import {filter, startWith} from "rxjs/operators";
 
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import {changeTrack} from "../Api";
-import TweetComp from "../components/TweetComp";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import Divider from "@material-ui/core/Divider";
-import L from 'leaflet';
 
 const numeral = require('numeral');
 numeral.defaultFormat('0,000');
@@ -102,7 +95,6 @@ let tweetsStream = new Subject();
 
 class Locations extends Component {
     initializeSocketStream() {
-        console.log("Init socket stream");
         subscribeToTweets(tweetsStream);
         changeTrack(this.state.trackText).subscribe((value) => {
         });
@@ -128,7 +120,6 @@ class Locations extends Component {
 
 
     componentDidMount() {
-        console.log("Component did mount maps");
         this.initializeSocketStream();
         tweetsStream
             .pipe(
@@ -142,18 +133,13 @@ class Locations extends Component {
                 filter(tweet => tweet.coordinates !== null)
             )
             .subscribe((tweet) => {
-                console.log("Tweets from observable :)");
-                console.log(tweet);
                 const stateCopy = {...this.state};
                 stateCopy.data.push(tweet);
                 this.setState(stateCopy);
-                console.log("data");
-                console.log(stateCopy.data)
             })
     }
 
     componentWillUnmount() {
-        console.log("Component will unmount locations");
         disconnectSocket();
         // socket.disconnect()
     }
