@@ -9,7 +9,17 @@ function subscribeToTweets(observer) {
     socket.on('tweet', data => observer.next(data));
     socket.on('connect_error', error => console.log("Connection error"));
 }
-function disconnectSocket() {
+function disconnectSocket(cb = null) {
+    socket.on('disconnect', function(){
+        console.log("Socket disconnected");
+        if(cb){
+            setTimeout(()=>{
+                console.log("There is a callback");
+                cb()
+            },100)
+
+        }
+    });
     socket.disconnect();
 }
 export { subscribeToTweets, disconnectSocket};

@@ -182,7 +182,7 @@ class Main extends Component {
             text: "Computer Science student :)",
             id:"1181810060453961730"
         },
-        trackText: 'navidad',
+        trackText: 'christmas',
         topicSent: '',
         connected: false,
         popularHashtags: [],
@@ -314,8 +314,9 @@ class Main extends Component {
 
 
     disconnect = () => {
-        disconnectSocket();
-        this.setState({connected: false})
+        disconnectSocket(()=>{
+            this.setState({connected: false})
+        });
     };
 
     connect = () => {

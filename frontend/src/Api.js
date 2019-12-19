@@ -1,6 +1,7 @@
 import {from} from 'rxjs';
 
 export const URL_SERVER = "http://localhost:3001";
+// export const URL_SERVER = "https://fast-bayou-22628.herokuapp.com";
 
 export const getMocked = () =>
     from(fetch(`${URL_SERVER}`).then((res) => res.json()));
