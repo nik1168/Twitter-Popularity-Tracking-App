@@ -142,12 +142,21 @@ class Locations extends Component {
                         coordinates: {coordinates: [-112.04488277, 33.49505197]},
                         text: "Happy New Year From our crazy family to yours! #itsmorethanradio #purposeoverpride #sdr #lovely #itsgrowtime… https://t.co/aZzkPdTkLc",
                         user: {profile_image_url: "http://pbs.twimg.com/profile_images/1074648081235369984/8_af3lzD_normal.jpg"}
+                    },
+                    {
+                        id: "1211601501040390145",
+                        screen_name: "wongryant",
+                        coordinates: {coordinates: [98.6667, 3.58333]},
+                        text: "WE ARE READY FOR CELEBRATE 2020.💥💥🍺🍻.Celebrate it with OUR FAMILY NEW YEAR EVE POOL PARTY 2019-2020. 31 dec 2019… https://t.co/PY06CvzQdm",
+                        user: {profile_image_url:"http://pbs.twimg.com/profile_images/516012985215508480/ubTdpfpc_normal.jpeg"}
                     }),
                 filter(tweet => tweet.coordinates !== null)
             )
             .subscribe((tweet) => {
                 const stateCopy = {...this.state};
                 stateCopy.data.push(tweet);
+                console.log("Tweet location");
+                console.log(tweet);
                 this.setState(stateCopy);
             })
     }

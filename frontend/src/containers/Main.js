@@ -19,6 +19,7 @@ import TweetComp from "../components/TweetComp";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import {green, red} from "@material-ui/core/colors";
 import {languages} from "../languages";
+import {languagesMapper} from "../languagesMapper";
 
 
 const backgroundShape = require('../images/shape.svg');
@@ -412,7 +413,8 @@ class Main extends Component {
                                             {
                                                 this.state.languages.map(((res, index) => (
                                                     <span>
-                                                         <span key={index}><b>{languages[res]}</b></span>
+                                                         <span
+                                                             key={index}><b>{languagesMapper[res] ? languagesMapper[res]['name'] : 'Undefined'}</b></span>
                                                         <br/>
                                                     </span>
 
