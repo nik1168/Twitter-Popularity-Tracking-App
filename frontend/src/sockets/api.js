@@ -4,6 +4,8 @@ import {URL_SERVER} from "../Api";
 const  socket = io(URL_SERVER);
 
 function subscribeToTweets(observer) {
+    console.log("Is socket connected?");
+    console.log(socket.connected)
     console.log("Subscribe to tweets");
     socket.connect();
     socket.on('tweet', data => observer.next(data));

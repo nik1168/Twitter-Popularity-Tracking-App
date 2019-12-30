@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import Topbar from './Topbar';
 import MapNik from "../components/Map";
 import {Subject} from "rxjs";
-import {filter, startWith} from "rxjs/operators";
+import {filter, startWith, takeUntil} from "rxjs/operators";
 
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import {changeTrack} from "../Api";
@@ -92,6 +92,7 @@ const styles = theme => ({
 });
 
 let tweetsStream = new Subject();
+let unsub = new Subject();
 
 class Locations extends Component {
     initializeSocketStream() {
@@ -113,23 +114,35 @@ class Locations extends Component {
         lat: 51.505,
         lng: -0.09,
         zoom: 13,
-        trackText: 'christmas'
+        trackText: 'new year'
         // trackText: 'christmas'
 
     };
+
+    componentWillMount() {
+
+    }
 
 
     componentDidMount() {
         this.initializeSocketStream();
         tweetsStream
             .pipe(
+                takeUntil(unsub),
                 startWith({
-                    id : "1207339939769257989",
-                    screen_name : "Nik1168",
-                    coordinates : {coordinates : [100.883, 12.9333]},
-                    text : "Doing a project for a Cloud Computing Course at #VUB using #RxJS and #React",
-                    user : {profile_image_url: "http://www.croop.cl/UI/twitter/images/doug.jpg"}
-                }),
+                        id: "1207339939769257989",
+                        screen_name: "Nik1168",
+                        coordinates: {coordinates: [100.883, 12.9333]},
+                        text: "Doing a project for a Cloud Computing Course at #VUB using #RxJS and #React",
+                        user: {profile_image_url: "http://www.croop.cl/UI/twitter/images/doug.jpg"}
+                    },
+                    {
+                        id: "1211573199756046337",
+                        screen_name: "mslovelyaz",
+                        coordinates: {coordinates: [-112.04488277, 33.49505197]},
+                        text: "Happy New Year From our crazy family to yours! #itsmorethanradio #purposeoverpride #sdr #lovely #itsgrowtime… https://t.co/aZzkPdTkLc",
+                        user: {profile_image_url: "http://pbs.twimg.com/profile_images/1074648081235369984/8_af3lzD_normal.jpg"}
+                    }),
                 filter(tweet => tweet.coordinates !== null)
             )
             .subscribe((tweet) => {
@@ -141,6 +154,8 @@ class Locations extends Component {
 
     componentWillUnmount() {
         disconnectSocket();
+        unsub.next();
+        unsub.complete();
         // socket.disconnect()
     }
 

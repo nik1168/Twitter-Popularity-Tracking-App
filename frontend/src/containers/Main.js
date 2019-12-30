@@ -10,7 +10,7 @@ import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import StopIcon from '@material-ui/icons/Stop';
 import Topbar from './Topbar';
 import {from, Subject, timer} from 'rxjs';
-import {concatAll, debounce, distinct, filter, groupBy, map, scan} from 'rxjs/operators';
+import {concatAll, debounce, distinct, filter, groupBy, map, scan, takeUntil} from 'rxjs/operators';
 import {MuiThemeProvider} from '@material-ui/core';
 import {disconnectSocket, subscribeToTweets} from "../sockets/api";
 import {changeTrack} from "../Api";
@@ -18,6 +18,7 @@ import TextField from "@material-ui/core/TextField";
 import TweetComp from "../components/TweetComp";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import {green, red} from "@material-ui/core/colors";
+import {languages} from "../languages";
 
 
 const backgroundShape = require('../images/shape.svg');
@@ -44,7 +45,7 @@ const styles = theme => ({
     paper: {
         padding: theme.spacing(3),
         height: '250px',
-        overflow : 'auto',
+        overflow: 'auto',
         textAlign: 'left',
         color: theme.palette.text.secondary,
     },
@@ -143,6 +144,7 @@ const Styles = {
 };
 
 let tweetsStream = new Subject();
+let unsub = new Subject();
 
 class Main extends Component {
 
@@ -164,7 +166,7 @@ class Main extends Component {
             },
             screen_name: "Nik1168",
             text: "Computer Science student :)",
-            id:"1181810060453961730"
+            id: "1181810060453961730"
         },
         trackText: 'christmas',
         topicSent: '',
@@ -183,10 +185,11 @@ class Main extends Component {
     }
 
     initializeTweetsStream() {
-        console.log("Init input stream!!");
+        console.log("Init tweet stream!!");
         tweetsStream
             .pipe(
                 // startWith(this.state.actualTweet),
+                takeUntil(unsub),
                 debounce(() => timer(50))
             )
             .subscribe((tweet) => {
@@ -199,7 +202,9 @@ class Main extends Component {
 
     initializeCountTweetsStream() {
         tweetsStream
-            .pipe(scan(counter => counter + 1, 0))
+            .pipe(
+                takeUntil(unsub),
+                scan(counter => counter + 1, 0))
             .subscribe(counter => {
                 this.setState({count: counter})
             })
@@ -208,6 +213,7 @@ class Main extends Component {
     initializeHashtagTweetsStream() {
         tweetsStream
             .pipe(
+                takeUntil(unsub),
                 filter(tweet => tweet.entities.hashtags.length > 0),
                 map(tweet => from(tweet.entities.hashtags)),
                 concatAll(), // merge observables :)
@@ -224,8 +230,6 @@ class Main extends Component {
                         })
                     )
                     .subscribe((result) => {
-                        console.log("Final result papaya de zelaya");
-                        console.log(result);
                         const stateCopy = {...this.state};
                         const index = stateCopy.popularHashtags.findIndex((r) => r.key.text === result.key.text);
                         if (index === -1) {
@@ -243,10 +247,10 @@ class Main extends Component {
 
     initializeLanguageTweetsStream() {
         tweetsStream
-            .pipe(distinct(tweet => tweet.lang))
+            .pipe(
+                takeUntil(unsub),
+                distinct(tweet => tweet.lang))
             .subscribe(tweet => {
-                console.log("Tweet!!!");
-                console.log(tweet)
                 const stateCopy = {...this.state};
                 stateCopy.languages.push(tweet.lang);
                 this.setState(stateCopy)
@@ -260,7 +264,6 @@ class Main extends Component {
 
     componentDidMount() {
         console.log("Component did mount Twitter popularity");
-        console.log("Init sockets");
         this.initializeTweetsStream();
         this.initializeCountTweetsStream();
         this.initializeHashtagTweetsStream();
@@ -269,6 +272,8 @@ class Main extends Component {
 
     componentWillUnmount() {
         console.log("Component will unmount");
+        unsub.next();
+        unsub.complete();
         disconnectSocket();
         // socket.disconnect()
     }
@@ -298,7 +303,7 @@ class Main extends Component {
 
 
     disconnect = () => {
-        disconnectSocket(()=>{
+        disconnectSocket(() => {
             this.setState({connected: false})
         });
     };
@@ -372,7 +377,8 @@ class Main extends Component {
                                         <Typography color='secondary' variant="h5" gutterBottom>
                                             Topic {this.state.topicSent}
                                         </Typography>
-                                        <TweetComp img={actualTweet.user.profile_image_url}
+                                        <TweetComp key={actualTweet.id}
+                                                   img={actualTweet.user.profile_image_url}
                                                    id={actualTweet.id}
                                                    user={actualTweet.screen_name} text={actualTweet.text}/>
                                     </Paper>
@@ -386,7 +392,7 @@ class Main extends Component {
                                         </Typography>
                                         <Typography variant="body1" gutterBottom>
                                             {
-                                                this.state.popularHashtags.sort((a,b)=>b.size-a.size).map(((res, index) => (
+                                                this.state.popularHashtags.sort((a, b) => b.size - a.size).map(((res, index) => (
                                                     <span>
                                                          <span key={index}><b>#{res.key.text}</b> : {res.size} </span>
                                                         <br/>
@@ -406,7 +412,7 @@ class Main extends Component {
                                             {
                                                 this.state.languages.map(((res, index) => (
                                                     <span>
-                                                         <span key={index}><b>{res}</b></span>
+                                                         <span key={index}><b>{languages[res]}</b></span>
                                                         <br/>
                                                     </span>
 
