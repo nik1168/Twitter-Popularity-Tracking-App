@@ -6,11 +6,11 @@ Node version v8.10.0
 
 User Interface
 ```bash
-cd frontend && yarn start
+cd frontend && yarn && yarn start
 ```
 or
 ```bash
-cd frontend && npm start
+cd frontend && npm install && npm start
 ```
 If there is an error running the frontend type
 ```bash
@@ -18,7 +18,7 @@ unset HOST
 ```
 Server
 ```bash
-cd frontend && npm start
+cd server && npm install && npm start
 ```
 ## Demo
 https://fast-bayou-22628.herokuapp.com/#/
