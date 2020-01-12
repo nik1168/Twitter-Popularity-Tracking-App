@@ -2,6 +2,8 @@
 Implementation of a twitter popularity tracking app using RxJs and React.
 An interesting project that combines observables with react.
 ## Run
+Node version v8.10.0
+
 User Interface
 ```bash
 cd frontend && yarn start
