@@ -4,7 +4,11 @@ An interesting project that combines observables with react.
 ## Run
 Node version v8.10.0
 
-User Interface
+### Server
+```bash
+cd server && npm install && npm start
+```
+### User Interface
 ```bash
 cd frontend && yarn && yarn start
 ```
@@ -16,9 +20,6 @@ If there is an error running the frontend type
 ```bash
 unset HOST
 ```
-Server
-```bash
-cd server && npm install && npm start
-```
+(Run server first)
 ## Demo
 https://fast-bayou-22628.herokuapp.com/#/
