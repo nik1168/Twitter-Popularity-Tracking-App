@@ -26,10 +26,10 @@ app.use(bodyParser.urlencoded({
 
 const Twitter = require('node-tweet-stream')
     , t = new Twitter({
-    consumer_key: 'Zk9Glqw4fF3rZI84yLmjdICm5',
-    consumer_secret: 'dMv28j60Y0XCf8S1PUfJXoVWMWMQH5UkdtsOvPDWFqo1JFlW6Q',
-    token: '474508954-4kp4veZONyNbX8ukHloMNecRatqy4e9BFeI2XNgT',
-    token_secret: 'hwg96Nju4SaiSfx9QKvjB9YCn7EkEqrkMe36m8mn9lIEC'
+    consumer_key: '',
+    consumer_secret: '',
+    token: '',
+    token_secret: ''
 });
 
 
