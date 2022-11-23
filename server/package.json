@@ -16,7 +16,7 @@
     "morgan": "~1.9.1",
     "node-tweet-stream": "^2.0.3",
     "papaparse": "^4.6.1",
-    "socket.io": "^2.1.1",
+    "socket.io": "^2.5.0",
     "twit": "^2.2.9"
   }
 }
